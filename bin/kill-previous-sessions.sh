@@ -16,7 +16,7 @@ do
 
     for forward_ports in ${PORTS[*]}
     do
-        pid=$(ps aux |grep autossh|grep "$source_port:$PN_HOST:$dest_port"|grep -v "grep"|awk '{print $2}')
+        pid=$(ps aux |grep autossh|grep "$source_port:localhost:$dest_port"|grep -v "grep"|awk '{print $2}')
 
         if [[ $pid ]]; then
             echo " >> Killing $pid"
