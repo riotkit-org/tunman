@@ -1,6 +1,8 @@
-# private-networking
+# reverse-networking
 Networking solution written in Bash, based on reverse proxy
 Allows to create multiple reverse tunnels from inside of NAT to the external server.
+
+![example structure](./docs/Reverse%20networking%20infrastructure.png "Reverse networking structure")
 
 ## Setup
 
