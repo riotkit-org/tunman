@@ -17,8 +17,3 @@ do
     ssh-copy-id -i ~/.ssh/id_rsa "$PN_USER@$PN_HOST" -p $PN_PORT
 done
 
-if [[ $1 == "--loop" ]]; then
-    while true; do
-        sleep 10
-    done
-fi
