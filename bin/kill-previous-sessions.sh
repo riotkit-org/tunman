@@ -20,7 +20,7 @@ do
 
         if [[ $pid ]]; then
             echo " >> Killing $pid"
-            kill $pid
+            kill -9 $pid
         fi
     done
 done
