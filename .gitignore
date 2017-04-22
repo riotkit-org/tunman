@@ -2,3 +2,4 @@
 !/var/pids/.gitkeep
 /conf.d/*
 !/conf.d/config-example.sh.md
+/hooks.d/*/*.sh

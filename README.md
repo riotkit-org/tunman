@@ -26,3 +26,10 @@ That's all!
 Your local services should be exposed to the remote server and be
 visible on eg. http://localhost:1234, so you need an internal proxy or
 a load balancer like nginx to forward the traffic to the internet.
+
+#### Monitoring
+
+There is a tool in `./bin/monitor.sh` that verifies all tunnels by doing a ping
+on every forwarded port.
+
+To take an action on detected failure place your hook in the hooks.d/monitor-down.d
