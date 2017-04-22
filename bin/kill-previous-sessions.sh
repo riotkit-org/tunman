@@ -16,11 +16,15 @@ do
 
     for forward_ports in ${PORTS[*]}
     do
-        pid=$(ps aux |grep autossh|grep "$source_port:localhost:$dest_port"|grep -v "grep"|awk '{print $2}')
+        IFS='>' read -r -a parts <<< "$forward_ports"
+        source_port=${parts[0]}
+        dest_port=${parts[1]}
+        
+        pid=$(ps aux |grep ssh|grep "$source_port:localhost:$dest_port"|grep -v "grep"|awk '{print $2}')
 
         if [[ $pid ]]; then
             echo " >> Killing $pid"
-            kill $pid
+            kill -9 $pid
         fi
     done
 done

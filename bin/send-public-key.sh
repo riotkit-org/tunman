@@ -16,3 +16,4 @@ do
     echo " >> Copying your ID to the $PN_USER@$PN_HOST:$PN_PORT, please log in"
     ssh-copy-id -i ~/.ssh/id_rsa "$PN_USER@$PN_HOST" -p $PN_PORT
 done
+

@@ -33,3 +33,9 @@ do
         fi
     done
 done
+
+if [[ $1 == "--loop" ]]; then
+    while true; do
+        sleep 10
+    done
+fi
