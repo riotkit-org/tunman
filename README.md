@@ -4,6 +4,18 @@ Allows to create multiple reverse tunnels from inside of NAT to the external ser
 
 ![example structure](./docs/Reverse%20networking%20infrastructure.png "Reverse networking structure")
 
+## Requirements
+
+Those packages needs to be installed:
+- bash
+- autossh
+- ssh (client)
+- awk
+- grep
+- nc
+
+*The remote server needs to support public-key authorization method.*
+
 ## Setup
 
 - Put your configuration files into `conf.d`
