@@ -48,7 +48,7 @@ on every forwarded port.
 
 To take an action on detected failure place your hook in the hooks.d/monitor-down.d
 
-##### Validation as a part of monitoring
+##### Configuration
 
 Set `PN_VALIDATE` to check the tunnel health using a simple ping to the port with `nc`.
 
