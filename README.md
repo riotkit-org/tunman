@@ -47,3 +47,11 @@ There is a tool in `./bin/monitor.sh` that verifies all tunnels by doing a ping
 on every forwarded port.
 
 To take an action on detected failure place your hook in the hooks.d/monitor-down.d
+
+##### Validation as a part of monitoring
+
+Set `PN_VALIDATE` to check the tunnel health using a simple ping to the port with `nc`.
+
+Possible values:
+- ssh: Executes `nc` on remote machine in case the service is not accessible from outside
+- local: Executes `nc` locally to ping remote machine's port
