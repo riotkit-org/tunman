@@ -4,6 +4,7 @@ function resetIteration() {
     PN_HOST=""
 
     PN_VALIDATE=""
+    PN_VALIDATE_COMMAND=""
     PORTS=()
 }
 

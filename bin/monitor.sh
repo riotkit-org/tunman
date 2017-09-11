@@ -3,12 +3,24 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 source include/functions.sh
 
+function getPingCommand() {
+    if [[ $PN_VALIDATE_COMMAND ]]; then
+        echo $PN_VALIDATE_COMMAND
+        return 0
+    fi
+
+    echo "nc -z -v -w15 $1 $2"
+    return 0
+}
+
 #
 # Use local nc to validate the connection
 # (this may be faster, but do not work if destination address is not accessible from external internet)
 #
 function performLocalValidation() {
-    nc -z -v -w15 $1 $2 > /dev/null 2>&1
+    command=$(getPingCommand $1 $2)
+
+    eval "$command" > /dev/null 2>&1
     return $?
 }
 
@@ -21,7 +33,9 @@ function performRemoteValidation() {
     hosts=( $1 localhost )
 
     for host in ${hosts[@]}; do
-        if ssh -o ConnectTimeout=30 -o PubkeyAuthentication=yes $PN_USER@$PN_HOST -p $PN_PORT "nc -z -v -w15 $host $2" > /dev/null 2>&1; then
+        command=$(getPingCommand $host $2)
+
+        if ssh -o ConnectTimeout=30 -o PubkeyAuthentication=yes $PN_USER@$PN_HOST -p $PN_PORT "$command" > /dev/null 2>&1; then
             return 0
         fi
     done

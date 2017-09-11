@@ -55,3 +55,10 @@ Set `PN_VALIDATE` to check the tunnel health using a simple ping to the port wit
 Possible values:
 - ssh: Executes `nc` on remote machine in case the service is not accessible from outside
 - local: Executes `nc` locally to ping remote machine's port
+
+Use `PN_VALIDATE_COMMAND` for custom validation executed locally or remotely if `nc` is not enough.
+
+Examples:
+- PN_VALIDATE_COMMAND="/bin/true" # for testing purposes, try it yourself
+- PN_VALIDATE_COMMAND="/bin/false" # for testing
+- PN_VALIDATE_COMMAND="curl http://your-domain.org:8002"
