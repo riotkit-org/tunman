@@ -10,4 +10,5 @@ PN_VALIDATE=local # local or ssh, both requires "nc" to be installed on local or
 # destination port on remote server => local port
 PORTS[0]="80>8000"
 PORTS[1]="2222>22"
-`
+PORTS[2]="80>8001>@gateway" # port will be available publicly
+```

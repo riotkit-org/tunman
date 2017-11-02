@@ -40,3 +40,10 @@ function executeHooks() {
         source ../../hooks.d/$1.d/$hook_name
     done
 }
+
+#
+# @param $1 host name
+#
+function getHostIpAddress() {
+    getent hosts $1 | awk '{ print $1 }'
+}
