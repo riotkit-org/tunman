@@ -35,7 +35,7 @@ do
         fi
 
         echo " --> Forwarding ${dest_host}${source_port}:${PN_HOST}:${dest_port}"
-        autossh -M 0 -N -f -o "PubkeyAuthentication=yes" -o "PasswordAuthentication=no" -R "${source_port}:localhost:${dest_port}" "${PN_USER}@${PN_HOST}" -p ${PN_PORT}
+        autossh -M 0 -N -f -o "PubkeyAuthentication=yes" -o "PasswordAuthentication=no" -R "${dest_host}${source_port}:localhost:${dest_port}" "${PN_USER}@${PN_HOST}" -p ${PN_PORT}
 
         if [[ $? != 0 ]]; then
             echo " ~ The port forwarding failed, please verify if your SSH keys are well installed"
