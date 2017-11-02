@@ -30,7 +30,7 @@ do
             dest_host="${parts[2]}:"
 
             if [[ "${dest_host}" == "@gateway:" ]]; then
-                dest_host="$(getHostIpAddress $PN_HOST)"
+                dest_host="$(getHostIpAddress $PN_HOST):"
             fi
         fi
 
