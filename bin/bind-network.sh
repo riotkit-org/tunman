@@ -4,48 +4,41 @@
 # Bind network ports to the remote server
 # using a reverse proxy strategy
 #
-# @author Wolnościowiec Team
-# @see https://wolnosciowiec.net
+# @author RiotKit Team
+# @see riotkit.org
 #--------------------------------------------
 
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 source include/functions.sh
 DIR=$(pwd)
 
-./kill-previous-sessions.sh
+#
+# @framework method
+#
+executeIterationAction () {
+    setupTunnelsForHost "${PN_USER}" "${PN_HOST}" "${PN_PORT}" "${PN_TYPE}" "${PORTS}"
+}
 
-for config_file_name in ../conf.d/*.sh
-do
-    echo " >> Reading $config_file_name"
-    source "$config_file_name"
+main () {
+    ./kill-previous-sessions.sh
+    iterateOverConfiguration
 
-    for forward_ports in ${PORTS[*]}
-    do
-        IFS='>' read -r -a parts <<< "$forward_ports"
-        source_port=${parts[0]}
-        dest_port=${parts[1]}
-        dest_host=""
+    if [[ $1 == "--loop" ]]; then
+        echo ' >> Running in a loop'
 
-        if [[ "${parts[2]}" ]]; then
-            dest_host="${parts[2]}:"
+        while true; do
+            sleep 10
+        done
+    fi
 
-            if [[ "${dest_host}" == "@gateway:" ]]; then
-                dest_host="$(getHostIpAddress $PN_HOST):"
-            fi
-        fi
+    if [[ $1 == "--healthcheck-loop" ]]; then
+        echo " >> Running a healthcheck loop (SLEEP_TIME=${LOOP_SLEEP_TIME})"
 
-        echo " --> Forwarding ${dest_host}${source_port}:${PN_HOST}:${dest_port}"
-        autossh -M 0 -N -f -o "PubkeyAuthentication=yes" -o "PasswordAuthentication=no" -R "${dest_host}${source_port}:localhost:${dest_port}" "${PN_USER}@${PN_HOST}" -p ${PN_PORT}
+        while true; do
+            sleep ${LOOP_SLEEP_TIME:-5}
+            $(dirname "${BASH_SOURCE[0]}")/../bin/monitor.sh
+        done
+    fi
+}
 
-        if [[ $? != 0 ]]; then
-            echo " ~ The port forwarding failed, please verify if your SSH keys are well installed"
-            exit 1
-        fi
-    done
-done
-
-if [[ $1 == "--loop" ]]; then
-    while true; do
-        sleep 10
-    done
-fi
+main "$@"

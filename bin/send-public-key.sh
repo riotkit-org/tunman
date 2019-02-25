@@ -1,5 +1,13 @@
 #!/bin/bash
 
+#--------------------------------------------
+# Kill all previously opened ssh sessions
+#
+# @author RiotKit Team
+# @see riotkit.org
+#--------------------------------------------
+
+
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 DIR=$(pwd)
 
