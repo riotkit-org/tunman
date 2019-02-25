@@ -1,18 +1,25 @@
 # reverse-networking
-Network setup automation scripts written in Bash, based on reverse proxy idea.
-Allows to create multiple reverse tunnels from inside of NAT to the external server.
+Network setup automation scripts written in Bash.
+Allows to create multiple tunnels from inside of NAT to the external server.
+
+Works in two cases:
+- #1: Can expose a NAT hidden service to the external server (or to the internet via external server)
+- #2: Can encrypt a connection with external server by adding SSH layer (eg. MySQL replication with external server with SSH encryption layer)
 
 ![example structure](./docs/Reverse%20networking%20infrastructure.png "Reverse networking structure")
 
 ## Requirements
 
-Those packages needs to be installed:
+Those very basic packages needs to be installed:
 - bash
 - autossh
 - ssh (client)
 - awk
 - grep
 - nc
+
+Works with GNU utils as well as with Busybox.
+Tested on Arch Linux, Debian and Alpine Linux.
 
 *The remote server needs to support public-key authorization method.*
 
@@ -64,6 +71,7 @@ PN_VALIDATE=none
 PN_TYPE=local           # connection type - we access remote resource, not exposing self to remote
 PN_SSH_OPTS=            # optional SSH options
 PORTS[0]="3307>3306>db_mysql"   # HOST_1 container name
+#PORTS[1]="3307>3306>db_mysql>@gateway" # expose on HOST_2 gateway interface (visible from internet)
 ```
 
 ##### Expose ports to external server
@@ -93,7 +101,7 @@ PORTS[0]="80>8000"
 
 # requires GatewayPorts in SSH to be enabled, can be insecure, will be available at PUBLIC_IP_ADDRESS:8001
 # easier option to configure, does not require a webserver to expose local port to the internet
-#PORTS[2]="80>8001>@gateway" # port will be available publicly
+#PORTS[1]="80>8001>@gateway" # port will be available publicly
 ```
 
 #### Monitoring
@@ -117,3 +125,4 @@ Examples:
 - PN_VALIDATE_COMMAND="/bin/true" # for testing purposes, try it yourself
 - PN_VALIDATE_COMMAND="/bin/false" # for testing
 - PN_VALIDATE_COMMAND="curl http://your-domain.org:8002"
+- PN_VALIDATE_COMMAND="wget -O - -T 2 http://172.28.0.6:3307 2>&1|grep mariadb"
