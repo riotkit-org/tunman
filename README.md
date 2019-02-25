@@ -48,6 +48,10 @@ Your local services should be exposed to the remote server and be
 visible on eg. http://localhost:1234, so you need an internal proxy or
 a load balancer like nginx to forward the traffic to the internet.
 
+## Docker
+
+Use images `wolnosciowiec/reverse-networking` and `wolnosciowiec/reverse-networking:armhf` to run container with reverse-networking installed.
+
 ## Example configurations
 
 
