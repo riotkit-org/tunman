@@ -52,6 +52,20 @@ a load balancer like nginx to forward the traffic to the internet.
 
 Use images `wolnosciowiec/reverse-networking` and `wolnosciowiec/reverse-networking:armhf` to run container with reverse-networking installed.
 
+```
+version: "2"
+services:
+    proxy:
+        image: wolnosciowiec/reverse-networking
+        volumes:
+            - "./containers/proxy/conf.d:/rn/conf.d:ro"
+            - "./data/proxy-ssh:/home/revproxy/.ssh"
+            - "./containers/proxy/ssh/id_rsa:/id_rsa:ro"
+            - "./containers/proxy/ssh/id_rsa.pub:/id_rsa.pub:ro"
+        environment:
+            - LOOP_SLEEP_TIME=30
+```
+
 ## Example configurations
 
 
