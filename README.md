@@ -144,3 +144,16 @@ Examples:
 - PN_VALIDATE_COMMAND="/bin/false" # for testing
 - PN_VALIDATE_COMMAND="curl http://your-domain.org:8002"
 - PN_VALIDATE_COMMAND="wget -O - -T 2 http://172.28.0.6:3307 2>&1|grep mariadb"
+
+Copyleft
+--------
+
+Created by **RiotKit Collective**, a libertarian, grassroot, non-profit organization providing technical support for the non-profit Anarchist movement.
+
+Check out those initiatives:
+- International Workers Association (https://iwa-ait.org)
+- Federacja Anarchistyczna (http://federacja-anarchistyczna.pl)
+- Związek Syndykalistów Polski (https://zsp.net.pl) (Polish section of IWA-AIT)
+- Komitet Obrony Praw Lokatorów (https://lokatorzy.info.pl)
+- Solidarity Federation (https://solfed.org.uk)
+- Priama Akcia (https://priamaakcia.sk)
