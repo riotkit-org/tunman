@@ -67,11 +67,6 @@ class TunnelManager:
         with self._lock:
             self._signatures.append(signature)
 
-            if definition not in self._starts_history:
-                self._starts_history[definition] = []
-
-            self._starts_history[definition].append(date.today())
-
         self.spawn_ssh_process(forwarding, definition, configuration, signature)
 
     def spawn_ssh_process(self, args: str, definition: Forwarding,
@@ -114,6 +109,11 @@ class TunnelManager:
 
         with self._lock:
             self._procs.append(proc)
+
+            if definition not in self._starts_history:
+                self._starts_history[definition] = []
+
+            self._starts_history[definition].append(date.today())
 
         sleep(10)
 
