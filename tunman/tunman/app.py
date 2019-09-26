@@ -4,6 +4,7 @@ from .manager import TunnelManager
 from .model import ConfigurationFactory, HostTunnelDefinitions
 from .settings import Config
 from .logger import setup_logger, Logger
+from time import sleep
 
 """
     Application main() - spawns threads managed by TunnelManager()
@@ -32,6 +33,7 @@ class TunManApplication(object):
             thr = threading.Thread(target=lambda: self.tun_manager.spawn_tunnel(definition, configuration))
             thr.start()
             self._threads.append(thr)
+            sleep(0.5)
 
     def on_application_close(self):
         Logger.info('Closing the application')

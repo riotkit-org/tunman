@@ -4,6 +4,7 @@ import psutil
 from typing import List, Union
 from time import sleep
 from threading import RLock
+from datetime import date
 from .model import Forwarding, HostTunnelDefinitions
 from .logger import Logger
 from .validation import Validation
@@ -12,6 +13,7 @@ from .validation import Validation
 class TunnelManager:
     _signatures: List[str]
     _procs: List[subprocess.Popen]
+    _starts_history: dict
     _sleep_time = 10
     is_terminating: bool
 
@@ -20,6 +22,28 @@ class TunnelManager:
         self._signatures = []
         self._procs = []
         self._lock = RLock(timeout=60)
+        self._starts_history = {}
+
+    def get_stats(self, definitions: List[Forwarding]) -> dict:
+        definitions_status = {}
+
+        for definition in definitions:
+            proc = self._find_process_by_signature(definition.create_ssh_forwarding())
+            starts_history = self._starts_history[definition] if definition in self._starts_history else []
+
+            definitions_status[definition] = {
+                'pid': proc.pid if proc else '',
+                'is_alive': proc is not None,
+                'starts_history': starts_history,
+                'restarts_count': abs(len(starts_history) - 1)
+            }
+
+        return {
+            'signatures': self._signatures,
+            'status': definitions_status,
+            'procs_count': len(self._procs),
+            'is_terminating': self.is_terminating
+        }
 
     def spawn_tunnel(self, definition: Forwarding, configuration: HostTunnelDefinitions):
         """
@@ -42,6 +66,11 @@ class TunnelManager:
 
         with self._lock:
             self._signatures.append(signature)
+
+            if definition not in self._starts_history:
+                self._starts_history[definition] = []
+
+            self._starts_history[definition].append(date.today())
 
         self.spawn_ssh_process(forwarding, definition, configuration, signature)
 
@@ -89,8 +118,15 @@ class TunnelManager:
         sleep(10)
 
         if not Validation.is_process_alive(signature):
-            raise Exception('Cannot spawn %s, stdout=%s, stderr=%s' % (
-                cmd, proc.stdout.read().decode('utf-8'), proc.stderr.read().decode('utf-8')))
+            try:
+                stdout, stderr = [proc.stdout.read().decode('utf-8'), proc.stderr.read().decode('utf-8')]
+            except:
+                stdout, stderr = ['', '']
+
+            Logger.error('Cannot spawn %s, stdout=%s, stderr=%s' % (cmd, stdout, stderr))
+            sleep(15)
+
+            return self.spawn_ssh_process(args, definition, configuration, signature)
 
         Logger.info('Process for "%s" survived initialization, got pid=%i' % (signature, proc.pid))
         self._tunnel_loop(definition, configuration, signature, args)

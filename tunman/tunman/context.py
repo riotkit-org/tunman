@@ -1,4 +1,0 @@
-
-
-class ForwardingContext(object):
-    pass

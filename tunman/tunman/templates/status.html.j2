@@ -1,0 +1,59 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:og="http://ogp.me/ns#"
+      xmlns:fb="https://www.facebook.com/2008/fbml">
+  <head>
+    <title>RiotKit's Tunman</title>
+    <meta name="robots" content="noindex">
+    <link href="static/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <style>
+        body{
+            background-color:#f2f2f2;
+        }
+        .table{
+            background-color:#fff;
+            box-shadow:0px 2px 2px #aaa;
+        }
+        .tunman-logo {
+            margin: 0 auto;
+            margin-top: 50px;
+        }
+        .tunman-footer {
+            text-align: right;
+        }
+    </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="tunman-logo">
+                    <img src="static/logo.png">
+                </div>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>PID</th>
+                            <th>Restarts</th>
+                            <th>Forwarding definition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for forwarding in forwardings %}
+                        <tr {% if forwarding.is_alive == False %}class="alert alert-warning"{% endif %}>
+                            <td>{{ forwarding.current_pid }}</td>
+                            <td>{{ forwarding.restarts_count }}</td>
+                            <td>{{ forwarding.name|escape }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="tunman-footer">
+                    <small>
+                        Copyleft by <a href="https://riotkit.org">RiotKit, an Anarchist social tech collective</a>. Logo based on "Stargate" <a href="https://thenounproject.com/term/stargate/1638250/" target="_blank">work</a> of <i>Jamison Wieser, US</i>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

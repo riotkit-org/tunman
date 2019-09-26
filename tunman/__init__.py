@@ -4,8 +4,9 @@
 """The app module, containing the app factory function."""
 
 import argparse
+import os
 from tornado.ioloop import IOLoop
-from tornado.web import Application
+from tornado.web import Application, StaticFileHandler
 from tunman.settings import Config
 from tunman.app import TunManApplication
 from tunman.views import ServeStatusHandler
@@ -29,7 +30,10 @@ def start_application(config: Config, action: str):
 def spawn_server(tunman: TunManApplication, port: int, address: str = ''):
     ServeStatusHandler.app = tunman
 
-    srv = Application([(r"/", ServeStatusHandler)])
+    srv = Application([
+        (r'/static/(.*)', StaticFileHandler, {'path': os.path.dirname(os.path.abspath(__file__)) + '/tunman/static'}),
+        (r"/", ServeStatusHandler)
+    ])
     srv.listen(port, address)
     IOLoop.current().start()
 

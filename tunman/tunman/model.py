@@ -11,6 +11,7 @@ from .settings import Config
 from .exceptions import ConfigurationError
 from .logger import Logger
 from threading import RLock
+from hashlib import sha256
 
 
 class ConfigurationInterface(abc.ABC):
@@ -81,6 +82,7 @@ class Forwarding(object):
     validate: ValidationDefinition
     mode: str
     configuration: ConfigurationInterface
+    _cache: dict
 
     def __init__(self, local: LocalPortDefinition,
                  remote: RemotePortDefinition,
@@ -92,6 +94,7 @@ class Forwarding(object):
         self.validate = validate
         self.mode = mode
         self.configuration = configuration
+        self._cache = {}
 
     def is_forwarding_remote_to_local(self):
         """
@@ -119,6 +122,9 @@ class Forwarding(object):
         :return:
         """
 
+        if 'create_ssh_forwarding' in self._cache:
+            return self._cache['create_ssh_forwarding']
+
         c_str = ''
 
         if self.is_forwarding_local_to_remote():
@@ -133,7 +139,21 @@ class Forwarding(object):
             self.remote.get_port()
         )
 
-        return self.configuration.parse(c_str)
+        result = self.configuration.parse(c_str)
+        self._cache['create_ssh_forwarding'] = result
+
+        return result
+
+    def __str__(self) -> str:
+        return '<Forwarding mode=' + self.mode + ', forwarding=' + self.create_ssh_forwarding() + '> from ' + \
+               str(self.configuration)
+
+    @property
+    def id(self):
+        h = sha256()
+        h.update(self.create_ssh_forwarding().encode('utf-8'))
+
+        return h.hexdigest()
 
 
 class HostTunnelDefinitions(ConfigurationInterface):
@@ -261,7 +281,7 @@ class ConfigurationFactory(object):
             except AttributeError as e:
                 raise ConfigurationError('Error while parsing "%s". %s' % (conf_path, str(e)))
 
-    def provide_all_configurations(self):
+    def provide_all_configurations(self) -> List[HostTunnelDefinitions]:
         return self._definitions
 
     def _parse(self, raw) -> HostTunnelDefinitions:
