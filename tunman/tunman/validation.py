@@ -11,18 +11,25 @@ class Validation:
     def check_tunnel_alive(definition: Forwarding, configuration: HostTunnelDefinitions) -> bool:
         validation = definition.validate.method
 
-        if type(validation) == Callable:
-            try:
+        try:
+            if type(validation) == Callable:
                 return definition.validate.method(definition, configuration)
-            except Exception as e:
-                Logger.error(str(e))
-                return False
 
-        if validation == 'local_port_ping':
-            return Validation.check_port_responding(
-                definition.local.get_host() if definition.local.get_host() else 'localhost',
-                definition.local.port
-            )
+            if validation == 'local_port_ping':
+                return Validation.check_port_responding(
+                    definition.local.get_host() if definition.local.get_host() else 'localhost',
+                    definition.local.port
+                )
+            elif validation == 'remote_port_ping':
+                return Validation.check_remote_port_responding(
+                    definition.remote.get_host(),
+                    definition.remote.port,
+                    configuration
+                )
+
+        except Exception as e:
+            Logger.error(str(e))
+            return False
 
         # no defined health check
         return True
@@ -45,3 +52,10 @@ class Validation:
             return sock.connect_ex((host, port)) == 0
         finally:
             sock.close()
+
+    @staticmethod
+    def check_remote_port_responding(host: str, port: int, configuration: HostTunnelDefinitions) -> bool:
+        # raises an exception on failure
+        configuration.ssh().exec_command('nc -zvw15 %s %i' % (host, port))
+
+        return True
