@@ -5,6 +5,7 @@
 
 import argparse
 import os
+import logging
 from tornado.ioloop import IOLoop
 from tornado.web import Application, StaticFileHandler
 from tunman.settings import Config
@@ -41,6 +42,15 @@ def spawn_server(tunman: TunManApplication, port: int, address: str = ''):
         (r'/static/(.*)', StaticFileHandler, {'path': os.path.dirname(os.path.abspath(__file__)) + '/tunman/static'}),
         (r"/", ServeStatusHandler)
     ])
+
+    # disable logger
+    hn = logging.NullHandler()
+    hn.setLevel(logging.DEBUG)
+
+    for logger_name in ['tornado.application', 'tornado.general']:
+        logging.getLogger(logger_name).addHandler(hn)
+        logging.getLogger(logger_name).propagate = False
+
     srv.listen(port, address)
     IOLoop.current().start()
 
