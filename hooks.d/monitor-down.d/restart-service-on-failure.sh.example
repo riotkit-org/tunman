@@ -1,4 +1,0 @@
-#!/bin/bash
-
-echo " >> Restarting reverse proxy via systemd"
-sudo systemctl restart reverse_proxy

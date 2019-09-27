@@ -1,2 +1,0 @@
-#!/bin/bash
-echo " Test: $PN_HOST is up :-)"
