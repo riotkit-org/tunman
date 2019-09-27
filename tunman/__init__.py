@@ -71,13 +71,13 @@ if __name__ == '__main__':
         '-c',
         '--config',
         help='Path to the configuration',
-        default='.'
+        default=os.getenv('TUNMAN_CONFIG', '.')
     )
     parser.add_argument(
         '-p',
         '--port',
         help='HTTP port to listen on',
-        default=8008
+        default=8015
     )
     parser.add_argument(
         '-l',
@@ -88,6 +88,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '-s',
         '--secret-prefix',
+        default=os.getenv('TUNMAN_SECRET_PREFIX', ''),
         help='Add a subdirectory prefix to the URL example: https://your-domain.org/some-secret-code-here/health'
     )
     parser.add_argument(
@@ -100,7 +101,7 @@ if __name__ == '__main__':
         '-e',
         '--env',
         help='Environment: debug, prod',
-        default='prod'
+        default=os.getenv('TUNMAN_ENV', 'prod')
     )
 
     parsed = parser.parse_args()
