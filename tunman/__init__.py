@@ -10,7 +10,7 @@ from tornado.ioloop import IOLoop
 from tornado.web import Application, StaticFileHandler
 from tunman.settings import Config
 from tunman.app import TunManApplication
-from tunman.views import ServeStatusHandler
+from tunman.views import ServeStatusHandler, ServeJsonStatus
 from tunman.settings import ProdConfig, DevConfig
 
 
@@ -20,7 +20,7 @@ def start_application(config: Config, action: str):
     try:
         if action == 'start':
             tunman.main()
-            spawn_server(tunman, config.PORT, config.LISTEN)
+            spawn_server(tunman, config.PORT, config.LISTEN, config.SECRET_PREFIX)
             return
         elif action == 'send-public-key':
             tunman.send_public_key()
@@ -35,21 +35,28 @@ def start_application(config: Config, action: str):
         tunman.on_application_close()
 
 
-def spawn_server(tunman: TunManApplication, port: int, address: str = ''):
+def spawn_server(tunman: TunManApplication, port: int, address: str = '', secret_prefix: str = ''):
     ServeStatusHandler.app = tunman
 
+    prefix = '/'
+
+    if secret_prefix:
+        prefix += secret_prefix + "/"
+
     srv = Application([
-        (r'/static/(.*)', StaticFileHandler, {'path': os.path.dirname(os.path.abspath(__file__)) + '/tunman/static'}),
-        (r"/", ServeStatusHandler)
+        (r"" + prefix + "static/(.*)", StaticFileHandler, {'path': os.path.dirname(os.path.abspath(__file__)) + '/tunman/static'}),
+        (r"" + prefix + "health", ServeJsonStatus),
+        (r"" + prefix, ServeStatusHandler)
     ])
 
     # disable logger
     hn = logging.NullHandler()
     hn.setLevel(logging.DEBUG)
 
-    for logger_name in ['tornado.application', 'tornado.general']:
-        logging.getLogger(logger_name).addHandler(hn)
-        logging.getLogger(logger_name).propagate = False
+    if tunman.settings.DEBUG is False:
+        for logger_name in ['tornado.application', 'tornado.general']:
+            logging.getLogger(logger_name).addHandler(hn)
+            logging.getLogger(logger_name).propagate = False
 
     srv.listen(port, address)
     IOLoop.current().start()
@@ -79,6 +86,11 @@ if __name__ == '__main__':
         default=None
     )
     parser.add_argument(
+        '-s',
+        '--secret-prefix',
+        help='Add a subdirectory prefix to the URL example: https://your-domain.org/some-secret-code-here/health'
+    )
+    parser.add_argument(
         'action',
         metavar='N',
         type=str,
@@ -96,5 +108,6 @@ if __name__ == '__main__':
     config.CONFIG_PATH = parsed.config
     config.PORT = parsed.port
     config.LISTEN = parsed.listen
+    config.SECRET_PREFIX = parsed.secret_prefix
 
     start_application(config, parsed.action)

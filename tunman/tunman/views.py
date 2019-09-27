@@ -1,5 +1,6 @@
 
 import os
+import json
 from typing import Optional, Awaitable
 from tornado.web import RequestHandler
 from jinja2 import Environment, FileSystemLoader
@@ -32,6 +33,7 @@ class ServeStatusHandler(RequestHandler):
                 'is_alive': False,
                 'current_pid': '',
                 'name': str(definition),
+                'signature': definition.create_ssh_forwarding_signature(),
                 'restarts_count': 0
             }
 
@@ -52,3 +54,33 @@ class ServeStatusHandler(RequestHandler):
                 all_definitions.append(tunnel)
 
         return all_definitions
+
+
+class ServeJsonStatus(ServeStatusHandler):
+    def get(self):
+        """ Returns a JSON formatted status page """
+
+        data = self._get_data()
+        tunnels = {}
+        global_status = True
+
+        for forwarding in data['forwardings']:
+            if not forwarding['is_alive']:
+                global_status = False
+
+            tunnels[forwarding['signature']] = {
+                'ok': forwarding['is_alive'],
+                'ident': forwarding['signature'] + '=' + str(forwarding['is_alive'])
+            }
+
+        self.add_header('Content-Type', 'application/json')
+        self.write(
+            json.dumps({
+                'status': {
+                    'tunnels': tunnels,
+                    'ident': 'global_status=' + str(global_status),
+                    'ok': global_status
+                },
+                'data': data
+            }, indent=4)
+        )

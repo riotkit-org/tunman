@@ -11,6 +11,7 @@ class Config(object):
     CONFIG_PATH = os.getenv('CONFIG_PATH', os.path.abspath(os.path.dirname(__file__)))
     LOG_LEVEL = 'info'
     LOG_PATH = './tunman.log'
+    SECRET_PREFIX = ''
 
 
 class ProdConfig(Config):

@@ -15,11 +15,13 @@ from time import sleep
 class TunManApplication(object):
     _threads: list
     config: ConfigurationFactory
+    settings: Config
     tun_manager: TunnelManager
 
     def __init__(self, config: Config):
         setup_logger(config.LOG_PATH, config.LOG_LEVEL)
         self.config = ConfigurationFactory(config)
+        self.settings = config
         self.tun_manager = TunnelManager()
         self._threads = []
 
