@@ -1,5 +1,6 @@
 
 import threading
+import os
 from .manager import TunnelManager
 from .model import ConfigurationFactory, HostTunnelDefinitions
 from .settings import Config
@@ -23,8 +24,35 @@ class TunManApplication(object):
         self._threads = []
 
     def main(self):
+        """ Start tunnelling and the webserver """
+
         for config in self.config.provide_all_configurations():
             self._spawn_threads(config)
+
+    def send_public_key(self):
+        """ Execute ssh-copy-id for all configured hosts """
+
+        for config in self.config.provide_all_configurations():
+            Logger.info('Processing %s, please enter credentials when asked' % str(config))
+            os.system(config.create_ssh_connection_string(ssh_executable='ssh-copy-id'))
+
+    def add_to_known_hosts(self):
+        """ Executes ssh-keyscan and adds signatures to ~/.ssh/known_hosts """
+
+        os.system('mkdir -p ~/.ssh; touch ~/.ssh/known_hosts')
+        path = os.path.expanduser('~/.ssh/known_hosts')
+
+        with open(path, 'rb') as f:
+            content = f.read().decode('utf-8')
+
+        for config in self.config.provide_all_configurations():
+            Logger.info('Adding %s to the %s' % (str(config), path))
+
+            if config.remote_host in content:
+                Logger.info('%s already present in the %s' % (config.remote_host, path))
+                continue
+
+            os.system(config.create_ssh_keyscan_command('ssh-keyscan') + ' >> ~/.ssh/known_hosts')
 
     def _spawn_threads(self, configuration: HostTunnelDefinitions):
         Logger.info('Spawning thread for %s' % configuration)
@@ -36,5 +64,5 @@ class TunManApplication(object):
             sleep(0.5)
 
     def on_application_close(self):
-        Logger.info('Closing the application')
+        Logger.debug('Closing the application')
         self.tun_manager.close_all_tunnels()

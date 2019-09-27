@@ -21,6 +21,13 @@ def start_application(config: Config, action: str):
             tunman.main()
             spawn_server(tunman, config.PORT, config.LISTEN)
             return
+        elif action == 'send-public-key':
+            tunman.send_public_key()
+            return
+        elif action == 'add-to-known-hosts':
+            tunman.add_to_known_hosts()
+        else:
+            print('Invalid command name, possible commands: start, send-public-key, add-to-known-hosts')
     except KeyboardInterrupt:
         print('[CTRL] + [C]')
     finally:

@@ -28,7 +28,7 @@ class TunnelManager:
         definitions_status = {}
 
         for definition in definitions:
-            proc = self._find_process_by_signature(definition.create_ssh_forwarding())
+            proc = self._find_process_by_signature(definition.create_ssh_forwarding_signature())
             starts_history = self._starts_history[definition] if definition in self._starts_history else []
 
             definitions_status[definition] = {
@@ -54,14 +54,8 @@ class TunnelManager:
         :return:
         """
 
-        opts = ''
-
-        if not configuration.ssh_opts:
-            if configuration.remote_key:
-                opts += ' -i %s' % configuration.remote_key
-
-        signature = definition.create_ssh_forwarding()
-        forwarding = opts + ' ' + signature
+        signature = definition.create_ssh_forwarding_signature()
+        forwarding = definition.create_ssh_arguments()
         Logger.info('Created SSH args: %s' % forwarding)
 
         with self._lock:
@@ -84,6 +78,7 @@ class TunnelManager:
         :return:
         """
 
+        # remove old, died processes from the internal registry
         with self._lock:
             self._clean_up()
 
@@ -95,18 +90,12 @@ class TunnelManager:
         if configuration.remote_password:
             cmd += 'sshpass -p "%s" ' % configuration.remote_password
 
-        cmd += "autossh -M 0 -N -f -o 'PubkeyAuthentication=yes' -o 'PasswordAuthentication=no' -nT %s %s" % (
-                args,
-                '-p %i %s@%s' % (
-                    configuration.remote_port,
-                    configuration.remote_user,
-                    configuration.remote_host
-                )
-            )
+        cmd += "autossh -M 0 -N -f -o 'PubkeyAuthentication=yes' -o 'PasswordAuthentication=no' -nT %s" % args
 
         Logger.info('Spawning %s' % cmd)
         proc = subprocess.Popen(cmd, shell=True)
 
+        # maintain the registry
         with self._lock:
             self._procs.append(proc)
 
@@ -117,6 +106,7 @@ class TunnelManager:
 
         sleep(10)
 
+        # make a delayed retry on start
         if not Validation.is_process_alive(signature):
             try:
                 stdout, stderr = [proc.stdout.read().decode('utf-8'), proc.stderr.read().decode('utf-8')]

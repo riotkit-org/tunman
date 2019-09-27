@@ -11,10 +11,18 @@ from .settings import Config
 from .exceptions import ConfigurationError
 from .logger import Logger
 from threading import RLock
-from hashlib import sha256
 
 
 class ConfigurationInterface(abc.ABC):
+    remote_user: str
+    remote_host: str
+    remote_port: int
+    remote_key: str
+    remote_password: str
+    remote_passphrase: str
+    ssh_opts: str
+    variables_post_processor: Callable
+
     @abc.abstractmethod
     def post_process_variables(self, variables: dict) -> dict:
         pass
@@ -33,6 +41,15 @@ class ConfigurationInterface(abc.ABC):
 
     @abc.abstractmethod
     def get_local_gateway(self):
+        pass
+
+    @abc.abstractmethod
+    def create_ssh_connection_string(self, with_key: bool = True, with_custom_opts: bool = True,
+                                     append: str = '') -> str:
+        pass
+
+    @abc.abstractmethod
+    def create_ssh_keyscan_command(self, executable: str = 'ssh-keyscan') -> str:
         pass
 
 
@@ -116,7 +133,7 @@ class Forwarding(object):
 
         return self.mode == 'from-nat-to-internet'
 
-    def create_ssh_forwarding(self) -> str:
+    def create_ssh_forwarding_signature(self) -> str:
         """
         Creates a set of SSH options for forwarding
         :return:
@@ -144,16 +161,30 @@ class Forwarding(object):
 
         return result
 
+    def create_ssh_arguments(self, with_forwarding: bool = True) -> str:
+        """
+        Creates full SSH arguments, including forwarding
+        :return:
+        """
+
+        return self._create_ssh_connection_string(
+            with_key=True,
+            with_custom_opts=True,
+            append=self.create_ssh_forwarding_signature() if with_forwarding else ''
+        )
+
+    def _create_ssh_connection_string(self, with_key: bool = True, with_custom_opts: bool = True,
+                                     append: str = '') -> str:
+        return self.configuration.create_ssh_connection_string(
+            with_key=with_key,
+            with_custom_opts=with_custom_opts,
+            append=append
+        )
+
     def __str__(self) -> str:
-        return '<Forwarding mode=' + self.mode + ', forwarding=' + self.create_ssh_forwarding() + '> from ' + \
+        return '<Forwarding mode=' + self.mode + ', forwarding=' + \
+               self.create_ssh_forwarding_signature() + '> from ' + \
                str(self.configuration)
-
-    @property
-    def id(self):
-        h = sha256()
-        h.update(self.create_ssh_forwarding().encode('utf-8'))
-
-        return h.hexdigest()
 
 
 class HostTunnelDefinitions(ConfigurationInterface):
@@ -247,6 +278,37 @@ class HostTunnelDefinitions(ConfigurationInterface):
                                   passphrase=self.remote_passphrase, look_for_keys=False)
 
             return self._ssh
+
+    def create_ssh_connection_string(self, with_key: bool = True, with_custom_opts: bool = True,
+                                     append: str = '', ssh_executable: str = '') -> str:
+        opts = ssh_executable
+
+        # custom ssh options defined in the configuration file
+        if self.ssh_opts and with_custom_opts:
+            opts += ' ' + self.ssh_opts + ' '
+
+        # private key to use
+        if self.remote_key and with_key:
+            opts += ' -i %s' % self.remote_key
+
+        # custom string that could be passed optionally
+        opts += ' ' + append + ' '
+
+        # -p user@host, basic information
+        opts += '-p %i %s@%s' % (
+            self.remote_port,
+            self.remote_user,
+            self.remote_host
+        )
+
+        return opts
+
+    def create_ssh_keyscan_command(self, executable:str = 'ssh-keyscan'):
+        return '%s -p %i %s' % (
+            executable,
+            self.remote_port,
+            self.remote_host
+        )
 
 
 class ConfigurationFactory(object):
