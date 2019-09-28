@@ -8,10 +8,17 @@ import os
 import logging
 from tornado.ioloop import IOLoop
 from tornado.web import Application, StaticFileHandler
-from tunman.settings import Config
-from tunman.app import TunManApplication
-from tunman.views import ServeStatusHandler, ServeJsonStatus
-from tunman.settings import ProdConfig, DevConfig
+
+try:
+    from .tunman.settings import Config
+    from .tunman.app import TunManApplication
+    from .tunman.views import ServeStatusHandler, ServeJsonStatus
+    from .tunman.settings import ProdConfig, DevConfig
+except ImportError:
+    from tunman.settings import Config
+    from tunman.app import TunManApplication
+    from tunman.views import ServeStatusHandler, ServeJsonStatus
+    from tunman.settings import ProdConfig, DevConfig
 
 
 def start_application(config: Config, action: str):
@@ -62,7 +69,7 @@ def spawn_server(tunman: TunManApplication, port: int, address: str = '', secret
     IOLoop.current().start()
 
 
-if __name__ == '__main__':
+def main():
     #
     # Arguments parsing
     #
@@ -112,3 +119,7 @@ if __name__ == '__main__':
     config.SECRET_PREFIX = parsed.secret_prefix
 
     start_application(config, parsed.action)
+
+
+if __name__ == '__main__':
+    main()
