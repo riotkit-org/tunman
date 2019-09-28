@@ -22,7 +22,7 @@ RUN apt-get update \
     \
     && cd /home/tunman/app \
     && ./setup.py install \
-    && apt-get remove -y gcc musl-dev python3-dev libffi-dev openssl-dev build-essential
+    && apt-get remove -y gcc musl-dev python3-dev libffi-dev libssl-dev build-essential
 RUN [ "cross-build-end" ]
 
 VOLUME "/home/tunman/.ssh"
