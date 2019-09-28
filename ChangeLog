@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Covered create\_ssh\_keyscan\_command()
 * Initial unit tests
 * Added pynacl from package manager, as it compiles too long
 * Added pynacl from package manager, as it compiles too long
