@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Initial unit tests
 * Added pynacl from package manager, as it compiles too long
 * Added pynacl from package manager, as it compiles too long
 * Trigger README rebuild

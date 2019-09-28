@@ -319,7 +319,7 @@ class HostTunnelDefinitions(ConfigurationInterface):
 
         return opts
 
-    def create_ssh_keyscan_command(self, executable:str = 'ssh-keyscan'):
+    def create_ssh_keyscan_command(self, executable: str = 'ssh-keyscan'):
         return '%s -p %i %s' % (
             executable,
             self.remote_port,

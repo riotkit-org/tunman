@@ -113,3 +113,14 @@ class HostTunnelDefinitionsTest(unittest.TestCase):
         parsed = definition.parse('Local GW is {{ local_gw }}')
 
         assert "Local GW is %s" % gw in parsed
+
+    def test_create_ssh_keyscan_command(self):
+        definition = HostTunnelDefinitions()
+        definition.remote_port = 2222
+        definition.remote_host = 'iwa-ait.org'
+
+        out = definition.create_ssh_keyscan_command()
+
+        assert "ssh-keyscan" in out
+        assert "-p 2222" in out
+        assert "iwa-ait.org" in out
