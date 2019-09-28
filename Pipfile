@@ -10,6 +10,7 @@ paramiko = ">=2.6.0"
 jinja2 = "*"
 tornado = "*"
 psutil = "*"
+requests = "*"
 
 [requires]
 python_version = "3.7"
