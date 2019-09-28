@@ -1,0 +1,53 @@
+CHANGES
+=======
+
+* Clean up
+* Corrected docs
+* Corrected docs
+* Added example configurations
+* Improved error handling for the validation commands
+* Added health check endpoint and a secret prefix, tornado logging in "dev" environment
+* Disabled Tornado logger
+* Clean up #1
+* Implemented shell tools: send-public-key, add-to-known-hosts
+* Fix restarts counter
+* Added web view, Pipfile
+* Rewrite to Python as part of 3.0.0 release
+
+v2.1.0
+------
+
+* Migration to Travis and Quay.io
+
+v2.0.0
+------
+
+* Added docker usage
+* Added support for read-only ssh keys as volume
+* Switched ARM build to Debian
+* Added ARM build
+* Added more documentation
+* - Refactored the code - Stabilized tunnels healthchecking - now it is able to restart tunnels IF NECESSARY - Added add-to-known-hosts.sh - Support for docker and busybox - Support for two side tunnels (ssh -L and ssh -R)
+* Fixed last commit
+* Fixed last commit
+* Added support for gateway ports
+* [#3] Added support for validation command
+* Update README.md
+* Added more docs
+* Update config-example.sh.md
+* Update README.md
+* Added example event
+* Added monitor.sh that is able to monitor and report failures
+* Update bind-network.sh
+* Update
+* Update send-public-key.sh
+* Update kill-previous-sessions.sh
+* Added kill signal to the kill-previous-sessions.sh, so the changes would be immediately applied
+* Add files via upload
+* Update README.md
+* Update README.md
+* Add files via upload
+* Create .gitkeep
+* Fixed redirection problem, clean up
+* Added first working version - 1.0
+* Initial commit

@@ -92,9 +92,33 @@ services:
             - TUNMAN_ENV=prod
 ```
 
+### Configuration reference
+
+List of all environment variables that could be used.
+
+```yaml
+
+- TUNMAN_CONFIG # (default: /config)
+
+# Secret prefix in the URL ex. https://your-app.org/super-hiper-secret-here/health
+- TUNMAN_SECRET_PREFIX # (default: )
+
+# Environment, options: dev, prod
+- TUNMAN_ENV # (default: prod)
+
+
+```
+
 ## Example configuration
 
 Please check the [example](./example) directory for examples.
+
+## Developing
+
+- The docker container is built on quay.io and hub.docker com
+- When you start working on it locally, at first run `make dev@develop` to install git hooks
+- README.md is automatically generated from README.md.j2, do not edit the generated version!
+- Use `make` for building, pushing, etc.
 
 ## Project Keywords
 

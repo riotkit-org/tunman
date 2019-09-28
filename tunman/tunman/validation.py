@@ -13,7 +13,7 @@ class Validation:
 
         try:
             if type(validation) == Callable:
-                return definition.validate.method(definition, configuration)
+                return validation(definition, configuration)
 
             if validation == 'local_port_ping':
                 return Validation.check_port_responding(

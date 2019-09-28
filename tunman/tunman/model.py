@@ -7,10 +7,11 @@ from socket import gethostbyname
 from importlib.machinery import SourceFileLoader
 from typing import List, NamedTuple, Callable, Union
 from jinja2 import Environment, BaseLoader
+from datetime import date
+from threading import RLock
 from .settings import Config
 from .exceptions import ConfigurationError
 from .logger import Logger
-from threading import RLock
 
 
 class ConfigurationInterface(abc.ABC):
@@ -57,7 +58,8 @@ PortDefinition = NamedTuple('PortDefinition', [
     ('gateway', str), ('host', str), ('port', int), ('configuration', ConfigurationInterface)
 ])
 ValidationDefinition = NamedTuple('ValidationDefinition', [
-    ('method', str), ('interval', int), ('wait_time_before_restart', int), ('kill_existing_tunnel_on_failure', bool)
+    ('method', any), ('interval', int), ('wait_time_before_restart', int), ('kill_existing_tunnel_on_failure', bool),
+    ('notify_url', str)
 ])
 
 
@@ -94,11 +96,15 @@ class Forwarding(object):
     Aggregate decides about SSH forwarding params
     """
 
+    # immutable
     local: LocalPortDefinition
     remote: RemotePortDefinition
     validate: ValidationDefinition
     mode: str
     configuration: ConfigurationInterface
+
+    # dynamic state
+    starts_history: list
     _cache: dict
 
     def __init__(self, local: LocalPortDefinition,
@@ -111,7 +117,10 @@ class Forwarding(object):
         self.validate = validate
         self.mode = mode
         self.configuration = configuration
+
+        # dynamic
         self._cache = {}
+        self.starts_history = []
 
     def is_forwarding_remote_to_local(self):
         """
@@ -180,6 +189,13 @@ class Forwarding(object):
             with_custom_opts=with_custom_opts,
             append=append
         )
+
+    def on_tunnel_started(self):
+        self.starts_history.append(date.today())
+
+    @property
+    def current_restart_count(self):
+        return len(self.starts_history) - 1 if self.starts_history else 0
 
     def __str__(self) -> str:
         return '<Forwarding mode=' + self.mode + ', forwarding=' + \
@@ -385,7 +401,8 @@ class ConfigurationFactory(object):
                     interval=raw_definition.get('validate').get('interval', 300),
                     wait_time_before_restart=raw_definition.get('validate').get('wait_time_before_restart', 10),
                     kill_existing_tunnel_on_failure=raw_definition.get('validate').get(
-                        'kill_existing_tunnel_on_failure', False)
+                        'kill_existing_tunnel_on_failure', False),
+                    notify_url=raw_definition.get('validate').get('notify_url', '')
                 ),
                 mode=raw_definition.get('mode'),
                 configuration=configuration

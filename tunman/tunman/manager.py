@@ -4,16 +4,15 @@ import psutil
 from typing import List, Union
 from time import sleep
 from threading import RLock
-from datetime import date
 from .model import Forwarding, HostTunnelDefinitions
 from .logger import Logger
 from .validation import Validation
+from .notify import Notify
 
 
 class TunnelManager:
     _signatures: List[str]
     _procs: List[subprocess.Popen]
-    _starts_history: dict
     _sleep_time = 10
     is_terminating: bool
 
@@ -29,13 +28,12 @@ class TunnelManager:
 
         for definition in definitions:
             proc = self._find_process_by_signature(definition.create_ssh_forwarding_signature())
-            starts_history = self._starts_history[definition] if definition in self._starts_history else []
 
             definitions_status[definition] = {
                 'pid': proc.pid if proc else '',
                 'is_alive': proc is not None,
-                'starts_history': starts_history,
-                'restarts_count': abs(len(starts_history) - 1)
+                'starts_history': definition.starts_history,
+                'restarts_count': definition.current_restart_count
             }
 
         return {
@@ -97,12 +95,13 @@ class TunnelManager:
 
         # maintain the registry
         with self._lock:
+            if self.is_terminating:
+                return
+
             self._procs.append(proc)
 
-            if definition not in self._starts_history:
-                self._starts_history[definition] = []
-
-            self._starts_history[definition].append(date.today())
+            definition.on_tunnel_started()
+            Notify.notify_tunnel_restarted(definition)
 
         sleep(10)
 

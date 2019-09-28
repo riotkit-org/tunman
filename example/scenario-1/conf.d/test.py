@@ -1,65 +1,30 @@
 
-import paramiko
-
-REMOTE_USER = 'revproxy'
-REMOTE_HOST = 'backups.riotkit.org'
-REMOTE_PORT = 9800
-REMOTE_KEY = '/home/damian/id_test'
+REMOTE_USER = 'proxyuser'
+REMOTE_HOST = 'remote-host.org'
+REMOTE_PORT = 22
+REMOTE_KEY = '~/.ssh/id_rsa'
 SSH_OPTS = ''
 
 FORWARD = [
     {
         'local': {
-            'gateway': True,
-            'host': None,
-            'port': 8010
+            'gateway': True,      # If you want to bind to a gateway interface (to publish tunnel to the internet)
+            'host': None,         # In local network an interface IP address or host you would like to bind to
+            'port': 8010          # Port to bind to
         },
         'remote': {
-            'gateway': False,
-            'host': '{{ remote_docker_host }}',
-            'port': 80
+            'gateway': False,     # Bind to a gateway interface (ssh host visible from internet)
+            'host': '127.0.0.1',  # IP address of a service reachable on the remote host
+            'port': 80            # Port reachable on the remote host
         },
         'validate': {
-            'method': 'local_port_ping',
-            'interval': 60,
-            'wait_time_before_restart': 60,
-            'kill_existing_tunnel_on_failure': True
+            'method': 'local_port_ping',             # Just a check if port is open, you can place there a callback
+            'interval': 60,                          # Interval for checking the health and general status
+            'wait_time_before_restart': 60,          # After failure wait this time before doing restart,
+                                                     # maybe the tunnel will be back
+            'kill_existing_tunnel_on_failure': True  # Exit existing tunnel if it is not working,
+            # 'notify_url': 'http://some-slack-webhook-url'
         },
-        'mode': 'local'
-    },
-    {
-        'local': {
-            'gateway': True,
-            'host': None,
-            'port': 5432
-        },
-        'remote': {
-            'gateway': False,
-            'host': '{{ remote_docker_host }}',
-            'port': 5432
-        },
-        'validate': {
-            'method': 'local_port_ping',
-            'interval': 60,
-            'wait_time_before_restart': 2,
-            'kill_existing_tunnel_on_failure': True
-        },
-        'mode': 'local'
+        'mode': 'local'  # Forward remote service to be visible locally (options: local, remote)
     }
 ]
-
-
-# def vars_post_processor(variables: dict, definition):
-#     ssh: paramiko.SSHClient = definition.ssh()
-#     stdin, stdout, stderr = ssh.exec_command(
-#         "getent hosts backup_primary_db_mysql_1 | awk '{ print $1 }'")
-#
-#     variables['remote_mysql_container_ip'] = stdout.read().decode('utf-8').strip()
-#
-#     print('!!!!!', variables)
-#
-#     return variables
-
-
-# other docker container IP:
-# getent hosts backup_primary_db_mysql_1 | awk '{ print $1 }'

@@ -63,6 +63,7 @@ FORWARD = [
             'wait_time_before_restart': 60,          # After failure wait this time before doing restart,
                                                      # maybe the tunnel will be back
             'kill_existing_tunnel_on_failure': True  # Exit existing tunnel if it is not working
+            # 'notify_url': 'http://some-slack-webhook-url'
         },
         'mode': 'local'  # Forward remote service to be visible locally (options: local, remote)
     }
