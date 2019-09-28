@@ -31,7 +31,7 @@ Those very basic packages needs to be installed:
 Works with GNU utils as well as with Busybox.
 Tested on Arch Linux, Debian and Alpine Linux.
 
-*The preferred way of authorization with remote is key based authorization*
+*The preferred way of  authorization with remote is key based authorization*
 
 ## Installing
 
