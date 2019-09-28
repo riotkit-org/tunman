@@ -3,6 +3,7 @@ TunMan
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/a3df7c2e60ee90d149a0/maintainability)](https://codeclimate.com/github/riotkit-org/reverse-networking/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/a3df7c2e60ee90d149a0/test_coverage)](https://codeclimate.com/github/riotkit-org/reverse-networking/test_coverage)
+[![Build Status](https://travis-ci.org/riotkit-org/reverse-networking.svg?branch=master)](https://travis-ci.org/riotkit-org/reverse-networking)
 
 Network setup automation and supervising. Provides monitoring, health checking, validating the connection with custom Python methods.
 
