@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+* Added pynacl from package manager, as it compiles too long
+* Added pynacl from package manager, as it compiles too long
+* Trigger README rebuild
+* Updated docs
+* Added ARM support to the Travis build
+* Dockerfile and CI setup for 3.0.0 release
+* Fixed launching problems as a package and not as a package
+* Added Slack integration
 * Clean up
 * Corrected docs
 * Corrected docs

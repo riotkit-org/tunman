@@ -19,6 +19,12 @@ before_script:
 
 jobs:
   include:
+    - stage: Run unit tests
+      script:
+          - pip install -r ./requirements.txt
+          - pip install -r ./requirements-dev.txt
+          - tox
+
     - stage: Build recent x86_64 image
       script: make build_image ARCH=x86_64 GIT_TAG=${TRAVIS_TAG} PUSH=true
 

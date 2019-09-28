@@ -28,6 +28,10 @@ Those very basic packages needs to be installed:
 - autossh
 - sshpass (if you use passwords)
 
+Development packages for development:
+- tox
+- unittest-data-provider
+
 Works with GNU utils as well as with Busybox.
 Tested on Arch Linux, Debian and Alpine Linux.
 
