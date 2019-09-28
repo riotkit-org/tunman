@@ -1,6 +1,7 @@
 language: python
 if: branch = master OR tag IS present
 python: 3.6
+dist: xenial
 services:
     - docker
 
@@ -19,12 +20,19 @@ before_script:
 
 jobs:
   include:
-    - stage: Run unit tests
+    - stage: Run unit tests on Python 3.6
       python: 3.6
       script:
           - pip install -r ./requirements.txt
           - pip install -r ./requirements-dev.txt
           - tox -e py36
+
+    - stage: Run unit tests on Python 3.7
+      python: 3.7
+      script:
+          - pip install -r ./requirements.txt
+          - pip install -r ./requirements-dev.txt
+          - tox -e py37
 
     - stage: Build recent x86_64 image
       script: make build_image ARCH=x86_64 GIT_TAG=${TRAVIS_TAG} PUSH=true
