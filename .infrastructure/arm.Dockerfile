@@ -12,7 +12,7 @@ COPY .git /home/tunman/app/.git
 
 RUN [ "cross-build-start" ]
 RUN apt-get update \
-    && apt-get install -y bash git sshpass autossh openssh-client netcat grep make python3-dev python3-pip build-essential libffi-dev libssl-dev \
+    && apt-get install -y bash git sshpass autossh openssh-client netcat grep make py3-pynacl python3-dev python3-pip build-essential libffi-dev libssl-dev \
     && apt-get clean \
     && mkdir -p /home/tunman \
     && useradd -m -s /bin/bash -u 1000 tunman \
