@@ -1,7 +1,8 @@
 TunMan
 ======
 
-![screenshot](./docs/screenshot.png "TunMan web gui screenshot")
+[![Maintainability](https://api.codeclimate.com/v1/badges/a3df7c2e60ee90d149a0/maintainability)](https://codeclimate.com/github/riotkit-org/reverse-networking/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/a3df7c2e60ee90d149a0/test_coverage)](https://codeclimate.com/github/riotkit-org/reverse-networking/test_coverage)
 
 Network setup automation and supervising. Provides monitoring, health checking, validating the connection with custom Python methods.
 
@@ -14,6 +15,8 @@ Works in at least those cases:
 - #2: Can encrypt a connection with external server by adding SSH layer (eg. MySQL replication with external server with SSH encryption layer)
 - #3: Can expose local hidden service to the remote server
 - #4: Can forward remote services hidden in docker containers (eg. connecting to some_ssh_1 and forwarding some_db_1:3306 to localhost from remote)
+
+![screenshot](./docs/screenshot.png "TunMan web gui screenshot")
 
 ![example structure](./docs/Reverse%20networking%20infrastructure.png "Reverse networking structure")
 
