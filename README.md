@@ -33,9 +33,29 @@ Tested on Arch Linux, Debian and Alpine Linux.
 
 *The preferred way of authorization with remote is key based authorization*
 
+## Installing
+
+You may want to use **docker** or baremetal installation.
+
+#### Baremetal installation
+
+```bash
+git clone git@github.com:riotkit-org/reverse-networking.git -b v3.0.0-rc1 # change "v3.0.0-rc1" to some version
+cd reverse-networking
+
+sudo ./setup.py install
+```
+
+#### Installing from PIP
+
+```bash
+sudo pip3 install tunman
+```
+
 ## Setup
 
-- Put your configuration files into `conf.d` of a directory you specified as configuration directory (-c or --config param, /conf.d docker volume)
+Put your configuration files into `conf.d` of a directory you specified as configuration directory (-c or --config param, /conf.d docker volume)
+Please check out the [example/scenario-*](./example) directories for example configuration directories.
 
 ```
 1. File must be written in Python syntax
@@ -50,12 +70,12 @@ Configure and start:
 
 ```bash
 # you can use command-line switches ex. "--config" or environment variables
-export TUNMAN_CONFIG="path-to-config-directory"
-export TUNMAN_SECRET_PREFIX=""
-export TUNMAN_ENV="prod"
+export TUNMAN_CONFIG="path-to-config-directory"   # -c / --config
+export TUNMAN_SECRET_PREFIX=""                    # -s / --secret-prefix
+export TUNMAN_ENV="prod"                          # -e / --env
 
-tunman send-public-key
 tunman add-to-known-hosts
+tunman send-public-key
 tunman start
 ```
 
@@ -76,23 +96,27 @@ HTML status page: `http://localhost:8015/`
 
 *Notice: The URL can be prefixed with (-s/--secret-prefix/TUNMAN_SECRET_PREFIX) ex. http://localhost/some-secret-prefix/health*
 
-## Docker
+## Using with Docker
+
+**Notice: It's recommended to use a stable version ex. v3.0.0-x86_64 instead of latest-dev-x86_64. For demo reasons you may want to check out latest-dev-x86_64**
+
+Please check out a list of available tags there: https://quay.io/repository/riotkit/reverse-networking?tab=tags
 
 ```
 version: "2"
 services:
     proxy:
-        image: quay.io/riotkit/reverse-networking
+        image: quay.io/riotkit/reverse-networking:latest-dev-x86_64
         volumes:
-            - "./configuration:/config:ro"
-            - "./id_rsa:/id_rsa:ro"
+            - "./configuration:/config:ro"   # see example directory structure in "example/scenario-*" directories
+            - "./id_rsa:/id_rsa:ro"          # a place for your private key, you may pick other one and point to it in the configuration
             - "./id_rsa.pub:/id_rsa.pub:ro"
         environment:
             - TUNMAN_SECRET_PREFIX=
             - TUNMAN_ENV=prod
 ```
 
-### Configuration reference
+### Docker container configuration reference
 
 List of all environment variables that could be used.
 
