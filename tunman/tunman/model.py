@@ -326,6 +326,17 @@ class HostTunnelDefinitions(ConfigurationInterface):
             self.remote_host
         )
 
+    def create_complete_command_with_supervision(self, forwarding: Forwarding):
+        cmd = ''
+        args = forwarding.create_ssh_arguments()
+
+        if self.remote_password:
+            cmd += 'sshpass -p "%s" ' % self.remote_password
+
+        cmd += "autossh -M 0 -N -f -o 'PubkeyAuthentication=yes' -o 'PasswordAuthentication=no' -nT %s" % args
+
+        return cmd
+
 
 class ConfigurationFactory(object):
     """

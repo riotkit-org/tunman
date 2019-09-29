@@ -53,15 +53,14 @@ class TunnelManager:
         """
 
         signature = definition.create_ssh_forwarding_signature()
-        forwarding = definition.create_ssh_arguments()
-        Logger.info('Created SSH args: %s' % forwarding)
+        Logger.info('Created SSH args: %s' % definition.create_ssh_arguments())
 
         with self._lock:
             self._signatures.append(signature)
 
-        self.spawn_ssh_process(forwarding, definition, configuration, signature)
+        self.spawn_ssh_process(definition, configuration, signature)
 
-    def spawn_ssh_process(self, args: str, definition: Forwarding,
+    def spawn_ssh_process(self, forwarding: Forwarding,
                           configuration: HostTunnelDefinitions, signature: str):
 
         """
@@ -69,8 +68,7 @@ class TunnelManager:
 
         Threads: Per thread
 
-        :param args:
-        :param definition:
+        :param forwarding:
         :param configuration:
         :param signature:
         :return:
@@ -83,12 +81,7 @@ class TunnelManager:
         if self.is_terminating:
             return
 
-        cmd = ''
-
-        if configuration.remote_password:
-            cmd += 'sshpass -p "%s" ' % configuration.remote_password
-
-        cmd += "autossh -M 0 -N -f -o 'PubkeyAuthentication=yes' -o 'PasswordAuthentication=no' -nT %s" % args
+        cmd = configuration.create_complete_command_with_supervision(forwarding)
 
         Logger.info('Spawning %s' % cmd)
         proc = subprocess.Popen(cmd, shell=True)
@@ -100,8 +93,8 @@ class TunnelManager:
 
             self._procs.append(proc)
 
-            definition.on_tunnel_started()
-            Notify.notify_tunnel_restarted(definition)
+            forwarding.on_tunnel_started()
+            Notify.notify_tunnel_restarted(forwarding)
 
         sleep(10)
 
@@ -115,12 +108,12 @@ class TunnelManager:
             Logger.error('Cannot spawn %s, stdout=%s, stderr=%s' % (cmd, stdout, stderr))
             sleep(15)
 
-            return self.spawn_ssh_process(args, definition, configuration, signature)
+            return self.spawn_ssh_process(forwarding, configuration, signature)
 
         Logger.info('Process for "%s" survived initialization, got pid=%i' % (signature, proc.pid))
-        self._tunnel_loop(definition, configuration, signature, args)
+        self._tunnel_loop(forwarding, configuration, signature)
 
-    def _tunnel_loop(self, definition: Forwarding, configuration: HostTunnelDefinitions, signature: str, args: str):
+    def _tunnel_loop(self, definition: Forwarding, configuration: HostTunnelDefinitions, signature: str):
         """
         One tunnel = one thread of health monitoring and reacting
 
@@ -141,7 +134,7 @@ class TunnelManager:
 
             if not Validation.is_process_alive(signature):
                 Logger.error('The tunnel process exited for signature "%s"' % signature)
-                return self.spawn_ssh_process(args, definition, configuration, signature)
+                return self.spawn_ssh_process(definition, configuration, signature)
 
             if not Validation.check_tunnel_alive(definition, configuration):
                 Logger.error('The health check "%s" failed for signature "%s"' % (
@@ -161,7 +154,7 @@ class TunnelManager:
                     if proc:
                         proc.kill()
 
-                return self.spawn_ssh_process(args, definition, configuration, signature)
+                return self.spawn_ssh_process(definition, configuration, signature)
 
     def _carefully_sleep(self, sleep_time: int):
         for i in range(0, sleep_time):

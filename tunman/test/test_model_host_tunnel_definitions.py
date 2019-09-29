@@ -1,13 +1,13 @@
 
 import os
 import sys
+import unittest
 from ipaddress import IPv4Address
 from typing import List
 from unittest_data_provider import data_provider
 
 sys.path.append(os.path.dirname(__file__) + "/../tunman")
 
-import unittest
 from ..tunman.model import HostTunnelDefinitions
 
 

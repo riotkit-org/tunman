@@ -41,6 +41,13 @@ class ColoredFormatter(logging.Formatter):
         return logging.Formatter.format(self, colored_record)
 
 
+def setup_dummy_logger():
+    logger = logging.getLogger('tunman')
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
+    this.logger = logger
+
+
 def setup_logger(path: str, level: str):
     """ Creates a logger instance with proper handlers configured """
 

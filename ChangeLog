@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+* Added travis badge
+* Fixed package name in ARM build
+* Added badges, updated docs structure
+* CI: Switch to Ubuntu 18.04 on Travis
+* CI: Added pipeline for Python 3.6 and Python 3.7
+* CI: Tox will now run tests on Python 3.6
 * Covered create\_ssh\_keyscan\_command()
 * Initial unit tests
 * Added pynacl from package manager, as it compiles too long
