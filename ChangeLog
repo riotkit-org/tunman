@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Move logic from manager to model
 * Added travis badge
 * Fixed package name in ARM build
 * Added badges, updated docs structure

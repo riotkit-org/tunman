@@ -122,7 +122,6 @@ class TunnelManager:
         :param definition:
         :param configuration:
         :param signature:
-        :param args:
         :return:
         """
 
@@ -149,10 +148,7 @@ class TunnelManager:
                     continue
 
                 if definition.validate.kill_existing_tunnel_on_failure:
-                    proc = self._find_process_by_signature(signature)
-
-                    if proc:
-                        proc.kill()
+                    self._kill_process_by_signature(signature)
 
                 return self.spawn_ssh_process(definition, configuration, signature)
 
@@ -202,6 +198,12 @@ class TunnelManager:
                 return proc
 
         return None
+
+    def _kill_process_by_signature(self, signature: str):
+        proc = self._find_process_by_signature(signature)
+
+        if proc:
+            proc.kill()
 
     def _clean_up(self):
         """ Free up information about processes that no longer are alive,
