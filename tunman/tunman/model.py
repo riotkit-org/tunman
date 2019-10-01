@@ -140,7 +140,7 @@ class Forwarding(object):
         :return:
         """
 
-        return self.mode == 'from-nat-to-internet'
+        return self.mode == 'remote'
 
     def create_ssh_forwarding_signature(self) -> str:
         """

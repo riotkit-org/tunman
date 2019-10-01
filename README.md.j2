@@ -139,6 +139,21 @@ List of all environment variables that could be used.
 
 Please check the [example](./example) directory for examples.
 
+## FAQ
+
+1. Cannot connect to SSH, invalid key or unsupported key type
+
+```
+paramiko.ssh_exception.SSHException: Invalid key
+paramiko.ssh_exception.SSHException: not a valid OPENSSH private key file
+```
+
+[It is a common problem in Paramiko library, that we use.](https://stackoverflow.com/questions/47286032/paramiko-throwing-invalid-key-in-unpad)
+Generate the key using a different format, examples:
+```
+ssh-keygen -t ed25519 -b 4096
+```
+
 ## Developing
 
 - The docker container is built on quay.io and hub.docker com
