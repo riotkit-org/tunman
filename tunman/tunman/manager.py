@@ -66,10 +66,10 @@ class TunnelManager:
         with self._lock:
             self._signatures.append(signature)
 
-        self.spawn_ssh_process(definition, configuration, signature)
+        self.spawn_ssh_process(definition, configuration, signature, retries=definition.retries)
 
     def spawn_ssh_process(self, forwarding: Forwarding,
-                          configuration: HostTunnelDefinitions, signature: str):
+                          configuration: HostTunnelDefinitions, signature: str, retries: int):
 
         """
         Spawns a SSH process and starts supervising
@@ -79,8 +79,12 @@ class TunnelManager:
         :param forwarding:
         :param configuration:
         :param signature:
+        :param retries:
         :return:
         """
+
+        if retries == 0:
+            raise Exception('Reached maximum retries for "%s"' % str(forwarding))
 
         # remove old, died processes from the internal registry
         with self._lock:
@@ -110,18 +114,18 @@ class TunnelManager:
         if not Validation.is_process_alive(signature):
             try:
                 stdout, stderr = [proc.stdout.read().decode('utf-8'), proc.stderr.read().decode('utf-8')]
-            except:
-                stdout, stderr = ['', '']
+            except Exception:
+                stdout, stderr = ['?', '?']
 
             Logger.error('Cannot spawn %s, stdout=%s, stderr=%s' % (cmd, stdout, stderr))
             sleep(15)
 
-            return self.spawn_ssh_process(forwarding, configuration, signature)
+            return self.spawn_ssh_process(forwarding, configuration, signature, retries-1)
 
         Logger.info('Process for "%s" survived initialization, got pid=%i' % (signature, proc.pid))
-        self._tunnel_loop(forwarding, configuration, signature)
+        self._tunnel_loop(forwarding, configuration, signature, retries)
 
-    def _tunnel_loop(self, definition: Forwarding, configuration: HostTunnelDefinitions, signature: str):
+    def _tunnel_loop(self, definition: Forwarding, configuration: HostTunnelDefinitions, signature: str, retries: int):
         """
         One tunnel = one thread of health monitoring and reacting
 
@@ -141,7 +145,7 @@ class TunnelManager:
 
             if not Validation.is_process_alive(signature):
                 Logger.error('The tunnel process exited for signature "%s"' % signature)
-                return self.spawn_ssh_process(definition, configuration, signature)
+                return self.spawn_ssh_process(definition, configuration, signature, retries-1)
 
             if not Validation.check_tunnel_alive(definition, configuration):
                 Logger.error('The health check "%s" failed for signature "%s"' % (
@@ -158,7 +162,7 @@ class TunnelManager:
                 if definition.validate.kill_existing_tunnel_on_failure:
                     self._kill_process_by_signature(signature)
 
-                return self.spawn_ssh_process(definition, configuration, signature)
+                return self.spawn_ssh_process(definition, configuration, signature, retries-1)
 
     def _carefully_sleep(self, sleep_time: int):
         for i in range(0, sleep_time):

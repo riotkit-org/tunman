@@ -55,6 +55,7 @@ class Forwarding(object):
     validate: ValidationDefinition
     mode: str
     configuration: ConfigurationInterface
+    retries: int
 
     # dynamic state
     starts_history: list
@@ -64,12 +65,14 @@ class Forwarding(object):
                  remote: RemotePortDefinition,
                  validate: ValidationDefinition,
                  mode: str,
-                 configuration: ConfigurationInterface):
+                 configuration: ConfigurationInterface,
+                 retries: int):
         self.local = local
         self.remote = remote
         self.validate = validate
         self.mode = mode
         self.configuration = configuration
+        self.retries = retries
 
         # dynamic
         self._cache = {}
@@ -166,9 +169,9 @@ class Forwarding(object):
         return len(self.starts_history) - 1 if self.starts_history else 0
 
     def __str__(self) -> str:
-        return '<Forwarding mode=' + self.mode + ', forwarding=' + \
-               self.create_ssh_forwarding_signature() + '> from ' + \
-               str(self.configuration)
+        return 'Forwarding of [%s <-> %s] for %s' % (
+            self.local, self.remote, self.configuration
+        )
 
 
 class HostTunnelDefinitions(ConfigurationInterface):
@@ -193,14 +196,6 @@ class HostTunnelDefinitions(ConfigurationInterface):
         self._cache = {}
         self._ssh = None
         self._lock = RLock(timeout=120)
-
-    def __str__(self):
-        return 'Host<ssh=%s@%s:%i> (contains %i forwardings)' % (
-            self.remote_user,
-            self.remote_host,
-            self.remote_port,
-            len(self.forward)
-        )
 
     def post_process_variables(self, variables: dict) -> dict:
         if self.variables_post_processor:

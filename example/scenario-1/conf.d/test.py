@@ -25,6 +25,7 @@ FORWARD = [
             'kill_existing_tunnel_on_failure': True  # Exit existing tunnel if it is not working,
             # 'notify_url': 'http://some-slack-webhook-url'
         },
-        'mode': 'local'  # Forward remote service to be visible locally (options: local, remote)
+        'mode': 'local',  # Forward remote service to be visible locally (options: local, remote)
+        'retries': 15
     }
 ]

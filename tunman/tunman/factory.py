@@ -86,7 +86,8 @@ class ConfigurationFactory(object):
                     notify_url=raw_definition.get('validate').get('notify_url', '')
                 ),
                 mode=raw_definition.get('mode'),
-                configuration=configuration
+                configuration=configuration,
+                retries=raw_definition.get('retries', 15)
             ))
 
         return definitions
