@@ -2,7 +2,8 @@
 import threading
 import os
 from .manager import TunnelManager
-from .model import ConfigurationFactory, HostTunnelDefinitions
+from .model import HostTunnelDefinitions
+from .factory import ConfigurationFactory
 from .settings import Config
 from .logger import setup_logger, Logger
 from time import sleep

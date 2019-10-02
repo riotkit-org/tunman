@@ -1,2 +1,6 @@
 /*.log
 /.helpers
+/.tox
+/.idea
+/*.egg-info
+/build

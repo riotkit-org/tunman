@@ -8,6 +8,7 @@ from .model import Forwarding, HostTunnelDefinitions
 from .logger import Logger
 from .validation import Validation
 from .notify import Notify
+from traceback import print_exc
 
 
 class TunnelManager:
@@ -52,7 +53,14 @@ class TunnelManager:
         :return:
         """
 
-        signature = definition.create_ssh_forwarding_signature()
+        try:
+            signature = definition.create_ssh_forwarding_signature()
+        except Exception as e:
+            signature = 'not_working_signature'
+
+            Logger.error('Cannot create a forwarding signature, maybe an SSH error? Error says %s' % str(e))
+            print_exc()
+
         Logger.info('Created SSH args: %s' % definition.create_ssh_arguments())
 
         with self._lock:
