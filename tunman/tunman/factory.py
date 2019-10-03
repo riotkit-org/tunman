@@ -55,6 +55,8 @@ class ConfigurationFactory(object):
         definition.remote_password = raw.REMOTE_PASSWORD if 'REMOTE_PASSWORD' in raw_opts else None
         definition.forward = self._parse_forwarding(raw, configuration=definition)
         definition.variables_post_processor = raw.vars_post_processor if 'vars_post_processor' in raw_opts else None
+        definition.restart_all_on_forward_failure = raw.RESTART_ALL_TUNNELS_ON_FORWARDING_FAILURE \
+            if 'RESTART_ALL_TUNNELS_ON_FORWARDING_FAILURE' in raw_opts else False
         definition.ssh_opts = raw.SSH_OPTS
 
         return definition
@@ -87,7 +89,11 @@ class ConfigurationFactory(object):
                 ),
                 mode=raw_definition.get('mode'),
                 configuration=configuration,
-                retries=raw_definition.get('retries', 15)
+                retries=raw_definition.get('retries', 20),
+                use_autossh=raw_definition.get('use_autossh', False),
+                health_check_connect_timeout=raw_definition.get('health_check_connect_timeout', 60),
+                warm_up_time=raw_definition.get('warm_up_time', 5),
+                return_to_health_chance_time=raw_definition.get('return_to_health_chance_time', 10)
             ))
 
         return definitions

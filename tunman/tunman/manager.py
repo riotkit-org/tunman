@@ -34,7 +34,8 @@ class TunnelManager:
                 'pid': proc.pid if proc else '',
                 'is_alive': proc is not None,
                 'starts_history': definition.starts_history,
-                'restarts_count': definition.current_restart_count
+                'restarts_count': definition.current_restart_count,
+                'ident': definition.ident
             }
 
         return {
@@ -96,7 +97,7 @@ class TunnelManager:
         cmd = configuration.create_complete_command_with_supervision(forwarding)
 
         Logger.info('Spawning %s' % cmd)
-        proc = subprocess.Popen(cmd, shell=True)
+        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         # maintain the registry
         with self._lock:
@@ -108,24 +109,28 @@ class TunnelManager:
             forwarding.on_tunnel_started()
             Notify.notify_tunnel_restarted(forwarding)
 
-        sleep(10)
+        self._carefully_sleep(forwarding.warm_up_time)
 
         # make a delayed retry on start
         if not Validation.is_process_alive(signature):
             try:
-                stdout, stderr = [proc.stdout.read().decode('utf-8'), proc.stderr.read().decode('utf-8')]
-            except Exception:
+                streams = proc.communicate(timeout=2)
+                stdout, stderr = [streams[0].decode('utf-8'), streams[1].decode('utf-8')]
+            except subprocess.TimeoutExpired:
                 stdout, stderr = ['?', '?']
 
             Logger.error('Cannot spawn %s, stdout=%s, stderr=%s' % (cmd, stdout, stderr))
-            sleep(15)
+
+            if not self._recover_from_error(stdout + stderr, configuration):
+                self._carefully_sleep(forwarding.return_to_health_chance_time)
 
             return self.spawn_ssh_process(forwarding, configuration, signature, retries-1)
 
         Logger.info('Process for "%s" survived initialization, got pid=%i' % (signature, proc.pid))
-        self._tunnel_loop(forwarding, configuration, signature, retries)
+        self._tunnel_loop(proc, forwarding, configuration, signature, retries)
 
-    def _tunnel_loop(self, definition: Forwarding, configuration: HostTunnelDefinitions, signature: str, retries: int):
+    def _tunnel_loop(self, proc: subprocess.Popen, definition: Forwarding, configuration: HostTunnelDefinitions,
+                     signature: str, retries: int):
         """
         One tunnel = one thread of health monitoring and reacting
 
@@ -137,15 +142,24 @@ class TunnelManager:
         :return:
         """
 
+        retry_method = lambda: self.spawn_ssh_process(definition, configuration, signature, retries-1)
+
         while True:
             if not self._carefully_sleep(definition.validate.interval):
                 return
+
+            try:
+                proc.wait(timeout=1)
+                Logger.error('The process just exited')
+                return retry_method()
+            except subprocess.TimeoutExpired:
+                pass
 
             Logger.debug('Running checks for signature "%s"' % signature)
 
             if not Validation.is_process_alive(signature):
                 Logger.error('The tunnel process exited for signature "%s"' % signature)
-                return self.spawn_ssh_process(definition, configuration, signature, retries-1)
+                return retry_method()
 
             if not Validation.check_tunnel_alive(definition, configuration):
                 Logger.error('The health check "%s" failed for signature "%s"' % (
@@ -162,7 +176,25 @@ class TunnelManager:
                 if definition.validate.kill_existing_tunnel_on_failure:
                     self._kill_process_by_signature(signature)
 
-                return self.spawn_ssh_process(definition, configuration, signature, retries-1)
+                return retry_method()
+
+    @staticmethod
+    def _recover_from_error(error_message: str, config: HostTunnelDefinitions) -> bool:
+        """
+        :param error_message:
+        :param config:
+        :return: Returns True when recovery was performed
+        """
+
+        if "remote port forwarding failed for listen port" in error_message and config.restart_all_on_forward_failure:
+            Logger.warning('Killing all remote SSH sessions to free up the busy port')
+
+            config.ssh_kill_all_sessions_on_remote()
+            sleep(2)
+
+            return True
+
+        return False
 
     def _carefully_sleep(self, sleep_time: int):
         for i in range(0, sleep_time):
@@ -189,24 +221,35 @@ class TunnelManager:
 
             if proc:
                 Logger.info('Killing %i (%s)' % (proc.pid, proc.name()))
-                proc.kill()
+                self._kill_proc(proc)
 
             for proc in psutil.process_iter():
                 cmdline = " ".join(proc.cmdline())
 
                 if signature in cmdline:
-                    proc.kill()
+                    self._kill_proc(proc)
 
         for proc in self._procs:
             Logger.info('Killing %i' % proc.pid)
-            proc.kill()
+
+            self._kill_proc(proc)
+
+    def _kill_proc(self, proc):
+        try:
+            proc.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            pass
+        except psutil.TimeoutExpired:
+            pass
+
+        proc.kill()
 
     @staticmethod
     def _find_process_by_signature(signature: str) -> Union[psutil.Process, None]:
         for proc in psutil.process_iter():
             cmdline = " ".join(proc.cmdline())
 
-            if signature in cmdline and "autossh" in cmdline:
+            if signature in cmdline and "ssh" in cmdline:
                 return proc
 
         return None

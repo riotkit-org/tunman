@@ -43,7 +43,7 @@
                         <tr {% if forwarding.is_alive == False %}class="alert alert-warning"{% endif %}>
                             <td>{{ forwarding.current_pid }}</td>
                             <td>{{ forwarding.restarts_count }}</td>
-                            <td>{{ forwarding.name|escape }}</td>
+                            <td>{{ forwarding.ident|escape }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

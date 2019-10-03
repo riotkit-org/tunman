@@ -1,13 +1,12 @@
 
 import subprocess
-import paramiko
 from socket import gethostbyname
 from typing import List, NamedTuple, Callable, Union
 from jinja2 import Environment, BaseLoader
 from datetime import date
 from threading import RLock
-from .logger import Logger
 from .interfaces import ConfigurationInterface, PortDefinition
+from .ssh import SSHClient
 
 
 ValidationDefinition = NamedTuple('ValidationDefinition', [
@@ -17,29 +16,11 @@ ValidationDefinition = NamedTuple('ValidationDefinition', [
 
 
 class RemotePortDefinition(PortDefinition):
-    def get_host(self):
-        host = self.host
-
-        if not host:
-            return '0.0.0.0'
-
-        return self.configuration.parse(host)
-
-    def get_port(self) -> int:
-        return int(self.configuration.parse(str(self.port)))
+    pass
 
 
 class LocalPortDefinition(PortDefinition):
-    def get_host(self) -> str:
-        host = self.host
-
-        if not host:
-            return '0.0.0.0'
-
-        return self.configuration.parse(host)
-
-    def get_port(self) -> int:
-        return int(self.configuration.parse(str(self.port)))
+    pass
 
 
 class Forwarding(object):
@@ -56,6 +37,10 @@ class Forwarding(object):
     mode: str
     configuration: ConfigurationInterface
     retries: int
+    use_autossh: bool
+    health_check_connect_timeout: int
+    warm_up_time: int
+    return_to_health_chance_time: int
 
     # dynamic state
     starts_history: list
@@ -66,13 +51,21 @@ class Forwarding(object):
                  validate: ValidationDefinition,
                  mode: str,
                  configuration: ConfigurationInterface,
-                 retries: int):
+                 retries: int,
+                 use_autossh: bool,
+                 health_check_connect_timeout: int,
+                 warm_up_time: int,
+                 return_to_health_chance_time: int):
         self.local = local
         self.remote = remote
         self.validate = validate
         self.mode = mode
         self.configuration = configuration
         self.retries = retries
+        self.use_autossh = use_autossh
+        self.health_check_connect_timeout = health_check_connect_timeout
+        self.warm_up_time = warm_up_time
+        self.return_to_health_chance_time = return_to_health_chance_time
 
         # dynamic
         self._cache = {}
@@ -169,9 +162,15 @@ class Forwarding(object):
         return len(self.starts_history) - 1 if self.starts_history else 0
 
     def __str__(self) -> str:
+        """ Visual representation for health checks and web gui for the human """
+
         return 'Forwarding of [%s <-> %s] for %s' % (
             self.local, self.remote, self.configuration
         )
+
+    @property
+    def ident(self) -> str:
+        return 'Forward[' + self.local.ident + '][' + self.remote.ident + ']_at_' + self.configuration.ident
 
 
 class HostTunnelDefinitions(ConfigurationInterface):
@@ -188,7 +187,8 @@ class HostTunnelDefinitions(ConfigurationInterface):
     ssh_opts: str
     forward: List[Forwarding]
     variables_post_processor: Callable
-    _ssh: Union[paramiko.SSHClient, None]
+    restart_all_on_forward_failure: bool
+    _ssh: Union[SSHClient, None]
     _cache: dict
     _lock: RLock
 
@@ -239,14 +239,10 @@ class HostTunnelDefinitions(ConfigurationInterface):
         return tpl.render(**to_inject)
 
     def get_remote_interface_ip(self, name: str):
-        with self._lock:
-            ident = 'get_remote_interface_ip_(%s)' % name
-
-            if ident not in self._cache:
-                self._cache[ident] = self._exec_ssh(("ip addr show |grep %s | grep -E '^\s*inet' |" +
-                                                    " grep -m1 global | awk '{ print $2 }' | sed 's|/.*||'") % name)
-
-            return self._cache[ident]
+        return self._cached(
+            'get_remote_interface_ip_(%s)' % name,
+            lambda: self._get_ssh_client().get_interface_ip(name)
+        )
 
     def get_remote_docker_container_ip(self):
         """
@@ -254,71 +250,74 @@ class HostTunnelDefinitions(ConfigurationInterface):
         :return:
         """
 
-        with self._lock:
-            ident = 'non_lo_iface'
-
-            if ident not in self._cache:
-                self._cache[ident] = self._exec_ssh('ls /sys/class/net/|grep -v lo|tail -n 1 2>&1')
-
-        return self.get_remote_interface_ip(self._cache[ident])
+        return self._cached(
+            'non_lo_iface',
+            lambda: self._get_ssh_client().get_first_non_lo_ip()
+        )
 
     def get_remote_interface_gateway(self):
-        with self._lock:
-            ident = 'get_remote_interface_gateway'
-
-            if ident not in self._cache:
-                self._cache[ident] = self._exec_ssh(self._route_gateway_command)
-
-            return self._cache[ident]
+        return self._cached(
+            'get_remote_interface_gateway',
+            lambda: self._get_ssh_client().get_route_gateway()
+        )
 
     def get_remote_gateway(self):
-        with self._lock:
-            if 'get_remote_gateway' not in self._cache:
-                self._cache['get_remote_gateway'] = gethostbyname(self.remote_host).strip()
-
-            return self._cache['get_remote_gateway']
+        return self._cached(
+            'get_remote_gateway',
+            lambda: gethostbyname(self.remote_host).strip()
+        )
 
     def get_remote_docker_host_ip(self):
-        with self._lock:
-            if 'get_remote_docker_host_ip' not in self._cache:
-                self._cache['get_remote_docker_host_ip'] = self._exec_ssh("ip route|awk '/default/ { print $3 }'")
-
-            return self._cache['get_remote_docker_host_ip']
+        return self._cached(
+            'get_remote_docker_host_ip',
+            lambda: self._get_ssh_client().get_docker_host_ip()
+        )
 
     def get_local_gateway(self):
+        return self._cached(
+            'get_local_gateway',
+            lambda: subprocess.check_output(self._get_ssh_client().route_gateway_command,
+                                            shell=True).decode('utf-8').strip()
+        )
+
+    def _cached(self, cache_id: str, callback: Callable) -> any:
         with self._lock:
-            if 'get_local_gateway' not in self._cache:
-                self._cache['get_local_gateway'] = subprocess.check_output(self._route_gateway_command,
-                                                                           shell=True).decode('utf-8').strip()
+            if cache_id not in self._cache:
+                self._cache[cache_id] = callback()
 
-            return self._cache['get_local_gateway']
+            return self._cache[cache_id]
 
-    @property
-    def _route_gateway_command(self):
-        return "ip route| grep $(ip route |grep default | awk '{ print $5 }') | grep -v " + \
-                    "\"default\" | grep \"src\" | awk '{ print $5 }'"
+    def ssh_kill_all_sessions_on_remote(self):
+        with self._lock:
+            self._get_ssh_client().kill_all_sessions()
 
-    def _exec_ssh(self, cmd: str) -> str:
-        Logger.debug('SSH cmd: %s' % cmd)
-        stdin, stdout, stderr = self.ssh().exec_command(cmd)
-        stderr_content = stderr.read().decode('utf-8')
-        stdout_content = stdout.read().decode('utf-8').strip()
+    def exec_ssh(self, cmd: str, env: dict = None) -> str:
+        """
+        Execute a command via SSH
+        :param cmd:
+        :param env:
+        :return:
+        """
 
-        if stderr_content:
-            Logger.warning('SSH stderr: %s' % stderr_content)
+        ssh = self._get_ssh_client()
 
-        Logger.debug('SSH stdout: %s' % stdout_content)
+        with self._lock:
+            return ssh.exec(cmd, env=env)
 
-        return stdout_content
+    def _get_ssh_client(self) -> SSHClient:
+        """
+        RAW ssh client, DO NOT USE - have not implemented locking
+        Only for internal model usage
 
-    def ssh(self) -> paramiko.SSHClient:
+        :return:
+        """
+
         with self._lock:
             if not self._ssh:
-                self._ssh = paramiko.SSHClient()
-                self._ssh.load_system_host_keys()
-                self._ssh.connect(hostname=self.remote_host, port=self.remote_port, username=self.remote_user,
-                                  key_filename=self.remote_key, password=self.remote_password,
-                                  passphrase=self.remote_passphrase, look_for_keys=False)
+                self._ssh = SSHClient(
+                    host=self.remote_host, port=self.remote_port, user=self.remote_user,
+                    key=self.remote_key, password=self.remote_password, passphrase=self.remote_passphrase
+                )
 
             return self._ssh
 
@@ -360,7 +359,9 @@ class HostTunnelDefinitions(ConfigurationInterface):
         if self.remote_password:
             cmd += 'sshpass -p "%s" ' % self.remote_password
 
-        cmd += "autossh -M 0 -N -f -o 'PubkeyAuthentication=yes' -o 'PasswordAuthentication=no' -nT %s" % args
+        if forwarding.use_autossh:
+            cmd += "autossh -M 0 -N -f -o 'PubkeyAuthentication=yes' -nT " + args
+        else:
+            cmd += 'ssh -N -T ' + args
 
         return cmd
-

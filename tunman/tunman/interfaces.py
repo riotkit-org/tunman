@@ -12,6 +12,7 @@ class ConfigurationInterface(abc.ABC):
     forward: list
     ssh_opts: str
     variables_post_processor: Callable
+    restart_all_on_forward_failure: bool
 
     @abc.abstractmethod
     def post_process_variables(self, variables: dict) -> dict:
@@ -50,6 +51,10 @@ class ConfigurationInterface(abc.ABC):
             len(self.forward)
         )
 
+    @property
+    def ident(self) -> str:
+        return self.remote_user + '@' + self.remote_host + ':' + str(self.remote_port)
+
 
 class PortDefinition(object):
     gateway: str
@@ -64,7 +69,34 @@ class PortDefinition(object):
         self.configuration = configuration
 
     def __str__(self):
-        return 'PortDefinition<%s:%i, gw=%s' % (
+        return 'PortDefinition<%s:%i, gw=%s>' % (
             self.host, self.port, str(self.gateway)
         )
 
+    def get_host(self):
+        host = self.host
+
+        if not host:
+            return '0.0.0.0'
+
+        return self.configuration.parse(host)
+
+    def get_host_as_ip_address(self):
+        host = self.get_host()
+
+        if host == '*':
+            host = '0.0.0.0'
+
+        return host
+
+    def get_port(self) -> int:
+        return int(self.configuration.parse(str(self.port)))
+
+    @property
+    def ident(self):
+        ident = self.host + ':' + str(self.port)
+
+        if self.gateway:
+            ident += '@gw'
+
+        return ident

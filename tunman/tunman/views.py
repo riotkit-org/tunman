@@ -32,7 +32,7 @@ class ServeStatusHandler(RequestHandler):
             forwarding = {
                 'is_alive': False,
                 'current_pid': '',
-                'name': str(definition),
+                'ident': definition.ident,
                 'signature': definition.create_ssh_forwarding_signature(),
                 'restarts_count': 0
             }
@@ -68,9 +68,9 @@ class ServeJsonStatus(ServeStatusHandler):
             if not forwarding['is_alive']:
                 global_status = False
 
-            tunnels[forwarding['signature']] = {
+            tunnels[forwarding['ident']] = {
                 'ok': forwarding['is_alive'],
-                'ident': forwarding['signature'] + '=' + str(forwarding['is_alive'])
+                'ident': forwarding['ident'] + '=' + str(forwarding['is_alive'])
             }
 
         self.add_header('Content-Type', 'application/json')
