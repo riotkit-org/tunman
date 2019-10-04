@@ -138,7 +138,7 @@ class TunnelManager:
             Logger.error('Cannot spawn %s, stdout=%s, stderr=%s' % (cmd, stdout, stderr))
 
             if not self._recover_from_error(stdout + stderr, configuration):
-                self._carefully_sleep(forwarding.return_to_health_chance_time)
+                self._carefully_sleep(forwarding.time_before_restart_at_initialization)
 
             return SIGNAL_RESTART
 
@@ -252,7 +252,8 @@ class TunnelManager:
 
             self._kill_proc(proc)
 
-    def _kill_proc(self, proc):
+    @staticmethod
+    def _kill_proc(proc):
         try:
             proc.wait(timeout=1)
         except subprocess.TimeoutExpired:
@@ -293,4 +294,3 @@ class TunnelManager:
                     self._procs.remove(proc)
                 except ValueError:
                     continue
-

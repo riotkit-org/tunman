@@ -93,7 +93,7 @@ class ConfigurationFactory(object):
                 use_autossh=raw_definition.get('use_autossh', False),
                 health_check_connect_timeout=raw_definition.get('health_check_connect_timeout', 60),
                 warm_up_time=raw_definition.get('warm_up_time', 5),
-                return_to_health_chance_time=raw_definition.get('return_to_health_chance_time', 10),
+                time_before_restart_at_initialization=raw_definition.get('time_before_restart_at_initialization', 10),
                 wait_time_after_all_retries_failed=raw_definition.get('wait_time_after_all_retries_failed', 600)
             ))
 

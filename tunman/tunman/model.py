@@ -40,7 +40,7 @@ class Forwarding(object):
     use_autossh: bool
     health_check_connect_timeout: int
     warm_up_time: int
-    return_to_health_chance_time: int
+    time_before_restart_at_initialization: int
     wait_time_after_all_retries_failed: int
 
     # dynamic state
@@ -56,7 +56,7 @@ class Forwarding(object):
                  use_autossh: bool,
                  health_check_connect_timeout: int,
                  warm_up_time: int,
-                 return_to_health_chance_time: int,
+                 time_before_restart_at_initialization: int,
                  wait_time_after_all_retries_failed: int):
         self.local = local
         self.remote = remote
@@ -67,7 +67,7 @@ class Forwarding(object):
         self.use_autossh = use_autossh
         self.health_check_connect_timeout = health_check_connect_timeout
         self.warm_up_time = warm_up_time
-        self.return_to_health_chance_time = return_to_health_chance_time
+        self.time_before_restart_at_initialization = time_before_restart_at_initialization
         self.wait_time_after_all_retries_failed = wait_time_after_all_retries_failed
 
         # dynamic
@@ -150,7 +150,7 @@ class Forwarding(object):
         )
 
     def _create_ssh_connection_string(self, with_key: bool = True, with_custom_opts: bool = True,
-                                     append: str = '') -> str:
+                                      append: str = '') -> str:
         return self.configuration.create_ssh_connection_string(
             with_key=with_key,
             with_custom_opts=with_custom_opts,
