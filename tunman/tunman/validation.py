@@ -29,7 +29,7 @@ class Validation:
                 )
 
         except Exception as e:
-            Logger.error(str(e))
+            Logger.error('Validation error:' + str(e))
             return False
 
         # no defined health check
@@ -57,6 +57,6 @@ class Validation:
 
     @staticmethod
     def check_remote_port_responding(host: str, port: int, configuration: HostTunnelDefinitions) -> bool:
-        exit_code = int(configuration.exec_ssh('nc -zvw15 %s %i 1>&2; echo $?' % (host, port)).strip())
+        exit_code = int(configuration.exec_ssh('nc -zw15 %s %i 1>&2; echo $?' % (host, port)).strip())
 
         return exit_code == 0

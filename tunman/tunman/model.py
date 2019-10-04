@@ -41,6 +41,7 @@ class Forwarding(object):
     health_check_connect_timeout: int
     warm_up_time: int
     return_to_health_chance_time: int
+    wait_time_after_all_retries_failed: int
 
     # dynamic state
     starts_history: list
@@ -55,7 +56,8 @@ class Forwarding(object):
                  use_autossh: bool,
                  health_check_connect_timeout: int,
                  warm_up_time: int,
-                 return_to_health_chance_time: int):
+                 return_to_health_chance_time: int,
+                 wait_time_after_all_retries_failed: int):
         self.local = local
         self.remote = remote
         self.validate = validate
@@ -66,6 +68,7 @@ class Forwarding(object):
         self.health_check_connect_timeout = health_check_connect_timeout
         self.warm_up_time = warm_up_time
         self.return_to_health_chance_time = return_to_health_chance_time
+        self.wait_time_after_all_retries_failed = wait_time_after_all_retries_failed
 
         # dynamic
         self._cache = {}
@@ -175,7 +178,8 @@ class Forwarding(object):
 
 class HostTunnelDefinitions(ConfigurationInterface):
     """
-    Single host, multiple tunneling definitions
+    Single host, multiple tunneling definitions.
+    Defines ACCESS to the host, where the SSH Server is placed at.
     """
 
     remote_user: str

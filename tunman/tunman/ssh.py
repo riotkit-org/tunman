@@ -5,6 +5,10 @@ from .logger import Logger
 
 
 class SSHClient:
+    """
+    Wrapper to a SSH client, adds timeouts, retries, error handling and the list of common commands
+    """
+
     _ssh: paramiko.SSHClient
     _connection_setup: dict
     _timeout: int
@@ -28,7 +32,7 @@ class SSHClient:
     def raw_exec_command(self, command: str, env: dict = None, retries: int = 3) -> tuple:
         try:
             stdin, stdout, stderr = self._ssh.exec_command(command, environment=env, timeout=self._timeout)
-        except socket.timeout:
+        except (socket.timeout, paramiko.ssh_exception.SSHException):
             Logger.warning('SSH command failed due to timeout, retrying')
             self._connect()
             return self.raw_exec_command(command, env, retries - 1)

@@ -89,11 +89,12 @@ class ConfigurationFactory(object):
                 ),
                 mode=raw_definition.get('mode'),
                 configuration=configuration,
-                retries=raw_definition.get('retries', 20),
+                retries=raw_definition.get('retries', 10),
                 use_autossh=raw_definition.get('use_autossh', False),
                 health_check_connect_timeout=raw_definition.get('health_check_connect_timeout', 60),
                 warm_up_time=raw_definition.get('warm_up_time', 5),
-                return_to_health_chance_time=raw_definition.get('return_to_health_chance_time', 10)
+                return_to_health_chance_time=raw_definition.get('return_to_health_chance_time', 10),
+                wait_time_after_all_retries_failed=raw_definition.get('wait_time_after_all_retries_failed', 600)
             ))
 
         return definitions
