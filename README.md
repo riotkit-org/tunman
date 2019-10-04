@@ -6,6 +6,7 @@ TunMan
 [![Build Status](https://travis-ci.org/riotkit-org/reverse-networking.svg?branch=master)](https://travis-ci.org/riotkit-org/reverse-networking)
 
 Network setup automation and supervising. Provides monitoring, health checking, validating the connection with custom Python methods.
+Replaces old, slow maintained `autossh`.
 
 **Super-elastic, allows for dynamic IP resolving on local and remote using Python callback functions. It means you can achieve totally everything.**
 
@@ -29,8 +30,9 @@ Those very basic packages needs to be installed:
 - Bash
 - Pipenv
 - Python 3.5+
-- autossh
+- autossh (optional, can be used additionally, not recommended)
 - sshpass (if you use passwords)
+- docker (optional, if you want to run TunMan in a docker container)
 
 Development packages for development:
 - tox
