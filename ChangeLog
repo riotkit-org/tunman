@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Resolved tests after refactoring
 * Added missing process clean up
 * Refactor: Not using system-dependent shell commands to get networking information, now using just \`ip route\` command result and parsing it
 * Refactor: Split manager into TunnelManager and SystemProcessManager, surround code with try { } catch { }
