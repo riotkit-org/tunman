@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 sys.path.append(os.path.dirname(__file__) + "/../tunman")
 
 from ..tunman.model import HostTunnelDefinitions, Forwarding, LocalPortDefinition, RemotePortDefinition
-from ..tunman.manager.ssh import TunnelManager, Validation
+from ..tunman.manager.ssh import TunnelManager, Validation, SIGNAL_RESTART
 from ..tunman.logger import setup_dummy_logger
 
 
@@ -60,9 +60,9 @@ class ManagerTest(unittest.TestCase):
 
             manager = TunnelManager()
             manager.spawn_ssh_process = Mock()
-            manager._tunnel_loop(Mock(), fw, config, '-L 127.0.0.1:3306:192.168.1.5:3306')
+            result = manager._tunnel_loop(Mock(), fw, config, '-L 127.0.0.1:3306:192.168.1.5:3306')
 
-            assert manager.spawn_ssh_process.call_count == 1
+            assert result == SIGNAL_RESTART
 
     def test_tunnel_loop_spawns_tunnel_on_health_check_failed(self):
         """
@@ -81,9 +81,9 @@ class ManagerTest(unittest.TestCase):
 
                 manager = TunnelManager()
                 manager.spawn_ssh_process = Mock()
-                manager._tunnel_loop(Mock(), fw, config, '-L 127.0.0.1:3306:192.168.1.5:3306')
+                result = manager._tunnel_loop(Mock(), fw, config, '-L 127.0.0.1:3306:192.168.1.5:3306')
 
-                assert manager.spawn_ssh_process.call_count == 1
+                assert result == SIGNAL_RESTART
 
     def test_tunnel_loop_will_not_respawn_tunnel_when_its_a_false_alarm(self):
         """
