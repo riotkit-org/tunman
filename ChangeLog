@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Refactor: Split manager into TunnelManager and SystemProcessManager, surround code with try { } catch { }
 * Updated docs
 * Refactor of naming + docs
 * Refactor of retry mechanism - used loop instead of recursion. The recursion was a very bad idea as it was causing the stack overflow at longer runs

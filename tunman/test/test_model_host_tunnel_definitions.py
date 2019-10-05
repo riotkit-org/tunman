@@ -9,6 +9,7 @@ from unittest_data_provider import data_provider
 sys.path.append(os.path.dirname(__file__) + "/../tunman")
 
 from ..tunman.model import HostTunnelDefinitions
+from ..tunman.logger import setup_dummy_logger
 
 
 def create_ssh_connection_string_provider():
@@ -73,6 +74,8 @@ def create_ssh_connection_string_provider():
 
 
 class HostTunnelDefinitionsTest(unittest.TestCase):
+    def setUp(self) -> None:
+        setup_dummy_logger()
 
     @data_provider(create_ssh_connection_string_provider)
     def test_create_ssh_connection_string(self, definition_props: dict, method_kwargs: dict,
@@ -101,6 +104,13 @@ class HostTunnelDefinitionsTest(unittest.TestCase):
     @staticmethod
     def test_get_local_gateway():
         definition = HostTunnelDefinitions()
+        definition.remote_host = '1.2.3.4'
+        definition.remote_port = 2222
+        definition.remote_user = 'international-workers-association'
+        definition.remote_key = ''
+        definition.remote_password = 'world-should-be-free'
+        definition.remote_passphrase = 'social-revolution'
+
         gw = definition.get_local_gateway()
 
         assert IPv4Address(gw)

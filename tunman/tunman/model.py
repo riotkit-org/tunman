@@ -7,6 +7,7 @@ from datetime import date
 from threading import RLock
 from .interfaces import ConfigurationInterface, PortDefinition
 from .ssh import SSHClient
+from .network.ipparser import ParsedNetworkingInformation
 
 
 ValidationDefinition = NamedTuple('ValidationDefinition', [
@@ -192,6 +193,7 @@ class HostTunnelDefinitions(ConfigurationInterface):
     forward: List[Forwarding]
     variables_post_processor: Callable
     restart_all_on_forward_failure: bool
+    _ip_route: Union[ParsedNetworkingInformation, None]
     _ssh: Union[SSHClient, None]
     _cache: dict
     _lock: RLock
@@ -200,6 +202,7 @@ class HostTunnelDefinitions(ConfigurationInterface):
         self._cache = {}
         self._ssh = None
         self._lock = RLock(timeout=120)
+        self._ip_route = None
 
     def post_process_variables(self, variables: dict) -> dict:
         if self.variables_post_processor:
@@ -226,7 +229,7 @@ class HostTunnelDefinitions(ConfigurationInterface):
             'remote_gw': self.get_remote_gateway,
             'remote_interface_gw': self.get_remote_interface_gateway,
             'remote_docker_host': self.get_remote_docker_host_ip,
-            'remote_docker_container': self.get_remote_docker_container_ip,
+            'remote_docker_container': self.get_remote_interface_gateway,
             'remote_interface_eth0': lambda: self.get_remote_interface_ip('eth0'),
             'remote_interface_eth1': lambda: self.get_remote_interface_ip('eth1'),
             'remote_interface_eth2': lambda: self.get_remote_interface_ip('eth2')
@@ -246,17 +249,6 @@ class HostTunnelDefinitions(ConfigurationInterface):
         return self._cached(
             'get_remote_interface_ip_(%s)' % name,
             lambda: self._get_ssh_client().get_interface_ip(name)
-        )
-
-    def get_remote_docker_container_ip(self):
-        """
-        Returns IP address of first non-lo interface
-        :return:
-        """
-
-        return self._cached(
-            'non_lo_iface',
-            lambda: self._get_ssh_client().get_first_non_lo_ip()
         )
 
     def get_remote_interface_gateway(self):
@@ -280,9 +272,15 @@ class HostTunnelDefinitions(ConfigurationInterface):
     def get_local_gateway(self):
         return self._cached(
             'get_local_gateway',
-            lambda: subprocess.check_output(self._get_ssh_client().route_gateway_command,
-                                            shell=True).decode('utf-8').strip()
+            lambda: self._get_parsed_ip_route().gateway_interface_ip
         )
+
+    def _get_parsed_ip_route(self) -> ParsedNetworkingInformation:
+        if self._ip_route is None:
+            self._ip_route = ParsedNetworkingInformation(
+                subprocess.check_output('ip route', shell=True).decode('utf-8'))
+
+        return self._ip_route
 
     def _cached(self, cache_id: str, callback: Callable) -> any:
         with self._lock:

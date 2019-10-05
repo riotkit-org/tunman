@@ -2,8 +2,10 @@
 import paramiko
 import socket
 import time
+from typing import Union
 from traceback import format_exc
 from .logger import Logger
+from .network.ipparser import ParsedNetworkingInformation
 
 
 class SSHClient:
@@ -14,8 +16,10 @@ class SSHClient:
     _ssh: paramiko.SSHClient
     _connection_setup: dict
     _timeout: int
+    _ip_route: Union[ParsedNetworkingInformation, None]
 
     def __init__(self, host: str, port: int, user: str, key: str, password: str, passphrase: str, timeout: int = 15):
+        self._ip_route = None
         self._timeout = timeout
         self._connection_setup = {
             'hostname': host, 'port': port, 'username': user,
@@ -71,23 +75,17 @@ class SSHClient:
 
         self._connect()
 
-    def get_first_non_lo_ip(self) -> str:
-        return self.get_interface_ip(self.get_first_non_lo_interface())
-
     def get_interface_ip(self, name: str) -> str:
-        return self.exec(("ip addr show |grep %s | grep -E '^\s*inet' |" +
-                          " grep -m1 global | awk '{ print $2 }' | sed 's|/.*||'") % name)
-
-    def get_first_non_lo_interface(self) -> str:
-        return self.exec('ls /sys/class/net/|grep -v lo|tail -n 1 2>&1')
+        return self._get_parsed_ip_route().get_interface_ip(name)
 
     def get_docker_host_ip(self) -> str:
-        return self.exec("ip route|awk '/default/ { print $3 }'")
+        return self._get_parsed_ip_route().gateway
 
     def get_route_gateway(self) -> str:
-        return self.exec(self.route_gateway_command)
+        return self._get_parsed_ip_route().gateway_interface_ip
 
-    @property
-    def route_gateway_command(self):
-        return "ip route| grep $(ip route |grep default | awk '{ print $5 }') | grep -v " + \
-               "\"default\" | grep \"src\" | awk '{ print $5 }'"
+    def _get_parsed_ip_route(self) -> ParsedNetworkingInformation:
+        if self._ip_route is None:
+            self._ip_route = ParsedNetworkingInformation(self.exec('ip route'))
+
+        return self._ip_route
