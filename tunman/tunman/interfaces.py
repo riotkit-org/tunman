@@ -1,5 +1,5 @@
 import abc
-from typing import Callable, NamedTuple
+from typing import Callable
 
 
 class ConfigurationInterface(abc.ABC):
@@ -57,12 +57,12 @@ class ConfigurationInterface(abc.ABC):
 
 
 class PortDefinition(object):
-    gateway: str
+    gateway: bool
     host: str
     port: int
     configuration: ConfigurationInterface
 
-    def __init__(self, gateway: str, host: str, port: int, configuration: ConfigurationInterface):
+    def __init__(self, gateway: bool, host: str, port: int, configuration: ConfigurationInterface):
         self.gateway = gateway
         self.host = host
         self.port = port

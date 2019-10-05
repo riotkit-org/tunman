@@ -1,6 +1,8 @@
 
 import paramiko
 import socket
+import time
+from traceback import format_exc
 from .logger import Logger
 
 
@@ -34,6 +36,13 @@ class SSHClient:
             stdin, stdout, stderr = self._ssh.exec_command(command, environment=env, timeout=self._timeout)
         except (socket.timeout, paramiko.ssh_exception.SSHException):
             Logger.warning('SSH command failed due to timeout, retrying')
+            self._connect()
+            return self.raw_exec_command(command, env, retries - 1)
+        except:
+            Logger.warning('SSH command not possible to execute')
+            Logger.warning(format_exc())
+
+            time.sleep(1)
             self._connect()
             return self.raw_exec_command(command, env, retries - 1)
 

@@ -1,7 +1,7 @@
 
 import threading
 import os
-from .manager import TunnelManager
+from .manager.ssh import TunnelManager
 from .model import HostTunnelDefinitions
 from .factory import ConfigurationFactory
 from .settings import Config
@@ -27,7 +27,7 @@ class TunManApplication(object):
         self._threads = []
 
     def main(self):
-        """ Start tunnelling and the webserver """
+        """ Start tunnelling and the web server """
 
         for config in self.config.provide_all_configurations():
             self._spawn_threads(config)

@@ -1,55 +1,40 @@
 
 import subprocess
-import psutil
-from typing import List, Union
+from typing import List
 from time import sleep
 from threading import RLock
-from .model import Forwarding, HostTunnelDefinitions
-from .logger import Logger
-from .validation import Validation
-from .notify import Notify
-from traceback import print_exc
+from traceback import format_exc
+from ..model import Forwarding, HostTunnelDefinitions
+from ..logger import Logger
+from ..validation import Validation
+from ..notify import Notify
+from .sysprocess import SystemProcessManager
 
 SIGNAL_TERMINATE = 1
 SIGNAL_RESTART = 2
 
 
 class TunnelManager:
+    """
+    Spawns tunnels and supervises them
+    """
+
     _signatures: List[str]
-    _procs: List[subprocess.Popen]
+    _proc_manager: SystemProcessManager
     _sleep_time = 10
     is_terminating: bool
 
     def __init__(self):
         self.is_terminating = False
         self._signatures = []
-        self._procs = []
         self._lock = RLock(timeout=60)
         self._starts_history = {}
-
-    def get_stats(self, definitions: List[Forwarding]) -> dict:
-        definitions_status = {}
-
-        for definition in definitions:
-            proc = self._find_process_by_signature(definition.create_ssh_forwarding_signature())
-
-            definitions_status[definition] = {
-                'pid': proc.pid if proc else '',
-                'is_alive': proc is not None,
-                'starts_history': definition.starts_history,
-                'restarts_count': definition.current_restart_count,
-                'ident': definition.ident
-            }
-
-        return {
-            'signatures': self._signatures,
-            'status': definitions_status,
-            'procs_count': len(self._procs),
-            'is_terminating': self.is_terminating
-        }
+        self._proc_manager = SystemProcessManager()
 
     def spawn_tunnel(self, definition: Forwarding, configuration: HostTunnelDefinitions):
         """
+        Glues the parameters, restarts the loop on crash, handles application shutdown
+
         Threads: Per thread
 
         :param definition:
@@ -63,7 +48,7 @@ class TunnelManager:
             signature = 'not_working_signature'
 
             Logger.error('Cannot create a forwarding signature, maybe an SSH error? Error says %s' % str(e))
-            print_exc()
+            Logger.error(format_exc())
 
         Logger.info('Created SSH args: %s' % definition.create_ssh_arguments())
 
@@ -77,7 +62,12 @@ class TunnelManager:
                 retries_left = definition.retries
                 self._carefully_sleep(definition.wait_time_after_all_retries_failed)
 
-            signal = self.spawn_ssh_process(definition, configuration, signature)
+            try:
+                signal = self.spawn_ssh_process(definition, configuration, signature)
+            except:
+                Logger.error(format_exc())
+                self._carefully_sleep(5)
+                continue
 
             if signal == SIGNAL_TERMINATE:
                 return
@@ -91,9 +81,9 @@ class TunnelManager:
 
     def spawn_ssh_process(self, forwarding: Forwarding,
                           configuration: HostTunnelDefinitions, signature: str) -> int:
-
         """
-        Spawns a SSH process and starts supervising
+        Spawns a SSH process and delegates supervising
+        After fresh run of SSH tunnel it performs initial check
 
         Threads: Per thread
 
@@ -105,22 +95,16 @@ class TunnelManager:
 
         # remove old, died processes from the internal registry
         with self._lock:
-            self._clean_up()
+            self._proc_manager.clean_up_already_exited_processes()
 
         if self.is_terminating:
             return SIGNAL_TERMINATE
 
         cmd = configuration.create_complete_command_with_supervision(forwarding)
 
-        Logger.info('Spawning %s' % cmd)
-        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
         # maintain the registry
         with self._lock:
-            if self.is_terminating:
-                return SIGNAL_TERMINATE
-
-            self._procs.append(proc)
+            proc = self._proc_manager.spawn(cmd)
 
             forwarding.on_tunnel_started()
             Notify.notify_tunnel_restarted(forwarding)
@@ -129,12 +113,7 @@ class TunnelManager:
 
         # make a delayed retry on start
         if not Validation.is_process_alive(signature):
-            try:
-                streams = proc.communicate(timeout=2)
-                stdout, stderr = [streams[0].decode('utf-8'), streams[1].decode('utf-8')]
-            except subprocess.TimeoutExpired:
-                stdout, stderr = ['?', '?']
-
+            stdout, stderr = self._proc_manager.communicate(proc)
             Logger.error('Cannot spawn %s, stdout=%s, stderr=%s' % (cmd, stdout, stderr))
 
             if not self._recover_from_error(stdout + stderr, configuration):
@@ -165,13 +144,9 @@ class TunnelManager:
             if not self._carefully_sleep(definition.validate.interval):
                 return SIGNAL_TERMINATE
 
-            try:
-                proc.wait(timeout=1)
+            if not self._proc_manager.wait(proc):
                 Logger.error('The process just exited')
-
                 return SIGNAL_RESTART
-            except subprocess.TimeoutExpired:
-                pass
 
             Logger.debug('Running checks for signature "%s"' % signature)
 
@@ -192,9 +167,30 @@ class TunnelManager:
                     continue
 
                 if definition.validate.kill_existing_tunnel_on_failure:
-                    self._kill_process_by_signature(signature)
+                    self._proc_manager.kill_process_by_signature(signature)
 
                 return SIGNAL_RESTART
+
+    def get_stats(self, definitions: List[Forwarding]) -> dict:
+        definitions_status = {}
+
+        for definition in definitions:
+            proc = self._proc_manager.find_process_by_signature(definition.create_ssh_forwarding_signature())
+
+            definitions_status[definition] = {
+                'pid': proc.pid if proc else '',
+                'is_alive': proc is not None,
+                'starts_history': definition.starts_history,
+                'restarts_count': definition.current_restart_count,
+                'ident': definition.ident
+            }
+
+        return {
+            'signatures': self._signatures,
+            'status': definitions_status,
+            'procs_count': self._proc_manager.get_procs_count(),
+            'is_terminating': self.is_terminating
+        }
 
     @staticmethod
     def _recover_from_error(error_message: str, config: HostTunnelDefinitions) -> bool:
@@ -233,64 +229,3 @@ class TunnelManager:
         """
 
         self.is_terminating = True
-
-        for signature in self._signatures:
-            proc = self._find_process_by_signature(signature)
-
-            if proc:
-                Logger.info('Killing %i (%s)' % (proc.pid, proc.name()))
-                self._kill_proc(proc)
-
-            for proc in psutil.process_iter():
-                cmdline = " ".join(proc.cmdline())
-
-                if signature in cmdline:
-                    self._kill_proc(proc)
-
-        for proc in self._procs:
-            Logger.info('Killing %i' % proc.pid)
-
-            self._kill_proc(proc)
-
-    @staticmethod
-    def _kill_proc(proc):
-        try:
-            proc.wait(timeout=1)
-        except subprocess.TimeoutExpired:
-            pass
-        except psutil.TimeoutExpired:
-            pass
-
-        proc.kill()
-
-    @staticmethod
-    def _find_process_by_signature(signature: str) -> Union[psutil.Process, None]:
-        for proc in psutil.process_iter():
-            cmdline = " ".join(proc.cmdline())
-
-            if signature in cmdline and "ssh" in cmdline:
-                return proc
-
-        return None
-
-    def _kill_process_by_signature(self, signature: str):
-        proc = self._find_process_by_signature(signature)
-
-        if proc:
-            proc.kill()
-
-    def _clean_up(self):
-        """ Free up information about processes that no longer are alive,
-            so the application will not attempt to kill when gracefully shutting down
-        """
-
-        for proc in self._procs.copy():
-            Logger.debug('clean_up: Checking if process pid=%i is still alive' % proc.pid)
-
-            if proc.poll() is not None:
-                Logger.debug('clean_up: Freeing proc pid=%i' % proc.pid)
-
-                try:
-                    self._procs.remove(proc)
-                except ValueError:
-                    continue

@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+* Updated docs
+* Refactor of naming + docs
+* Refactor of retry mechanism - used loop instead of recursion. The recursion was a very bad idea as it was causing the stack overflow at longer runs
+* Stabilization of the SSH reconnection in all conditions
+* Implemented maximum retries, refactored str representation
+* Fixed support of forwarding to remote, handled gateway ports, added more automation of IP address
+* Fixed mode name to fit the documentation
+* Covered partially tunnel loop restart policy
 * Move logic from manager to model
 * Added travis badge
 * Fixed package name in ARM build
