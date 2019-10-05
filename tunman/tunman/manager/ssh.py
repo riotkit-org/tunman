@@ -229,3 +229,4 @@ class TunnelManager:
         """
 
         self.is_terminating = True
+        self._proc_manager.close_all_tunnels(self._signatures)
