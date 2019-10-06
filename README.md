@@ -18,6 +18,9 @@ Works in at least those cases:
 - #3: Can expose local hidden service to the remote server
 - #4: Can forward remote services hidden in docker containers (eg. connecting to some_ssh_1 and forwarding some_db_1:3306 to localhost from remote)
 
+**TunMan's motto is:** Be bulletproof! Switch to VPN, switch from WiFi to LTE, hibernate computer in Poland - wake up in Spain, cut off the internet for a few hours.
+Nothing matters, it should work when you go back online!
+
 ![screenshot](./docs/screenshot.png "TunMan web gui screenshot")
 
 ![example structure](./docs/Reverse%20networking%20infrastructure.png "Reverse networking structure")
