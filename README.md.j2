@@ -53,7 +53,7 @@ You may want to use **docker** or baremetal installation.
 #### Baremetal installation
 
 ```bash
-git clone git@github.com:riotkit-org/reverse-networking.git -b v3.0.0-rc1 # change "v3.0.0-rc1" to some version
+git clone git@github.com:riotkit-org/reverse-networking.git -b v3.1.0-rc2 # change "v3.1.0-rc2" to some version
 cd reverse-networking
 
 sudo ./setup.py install
@@ -111,7 +111,7 @@ HTML status page: `http://localhost:8015/`
 
 ## Using with Docker
 
-**Notice: It's recommended to use a stable version ex. v3.0.0-x86_64 instead of latest-dev-x86_64. For demo reasons you may want to check out latest-dev-x86_64**
+**Notice: It's recommended to use a stable version ex. v3.1.0-x86_64 instead of latest-dev-x86_64. For demo reasons you may want to check out latest-dev-x86_64**
 
 Please check out a list of available tags there: https://quay.io/repository/riotkit/reverse-networking?tab=tags
 
