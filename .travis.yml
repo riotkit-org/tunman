@@ -34,6 +34,19 @@ jobs:
           - pip install -r ./requirements-dev.txt
           - tox -e py37
 
+    - stage: Release to PIP
+      python: 3.7
+      deploy:
+          skip_cleanup: true
+          skip_existing: true
+          provider: pypi
+          distributions: sdist bdist_wheel
+          on:
+              all_branches: true
+          user: marek_man
+          password:
+              secure: jVQvdHqtkrL1smrJl/QC3YjP7vXSQ0XGuXe6nKeO0y3hDqGF8uP1FWNE4N+qSd1hJa23bN26gJa0FwrbP/n0XH82638QWw/Lu7gO5ITsoFrD3eERHqlRJ+xjsLo5NCP5/oo1fgMxWJ2Dp9xQvVRoYOc+xyyfoyllyMQY7vrpV9BZexJh9hZC2feX6B6PxmDYOV6EPnM2Nxi37kvUva7vAxJPZXrK29gJuB9VR1ToST6/ivA8LZXrjt1K/W1O8ewENr+PkDfmo8+ULHQtMEZO4/I4IvFRiLVYfCDFsJfUTkxeeMu468ZHnYyEUWcK//18UAz7bQXTOCeZbSla+g/LtBLXOo8w+V1Ws541ulJkKrekbvJB1GPwzOcVDHb9UEXtGyr8MvTkKqJUBsZFXGW3F7ClNyMvlbdf/8RDbI2xhwS402TD4e4g9cvZCy4QOGDHaAH0NldoLHdxfNQALIXrjI9HNm1bG5LQtvJ9bEsVsxcm1Zu9nSKqUfDxG12OIpAcdAwa0AoKOwds8BfIskyvbR+n37ftv6Hyv9H3ErpZh6L04y/LJeSE87+nQYwfFhZPx4KD+/D4lqCm1a98mDUwSIhkfrhF2Gvt0B0aOKP1pxGQMW8QVicOplCfdk4SHQL8J/Gy6xZbOFH7rWdDnnO/CWmlZ3UnCJDWiGssBJwstyA=
+
     - stage: Build recent x86_64 image
       script: make build_image ARCH=x86_64 GIT_TAG=${TRAVIS_TAG} PUSH=true
 
