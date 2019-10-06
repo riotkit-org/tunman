@@ -97,23 +97,6 @@ Your local services should be exposed to the remote server and be
 visible on eg. http://localhost:1234, so you need an internal proxy or
 a load balancer like nginx to forward the traffic to the internet.
 
-#### Variables table
-
-Often you do not know on which IP address is the docker container, or interface listening. TunMan allows to retrieve
-dynamic values using variables.
-
-You can use variables instead of ex. host name
-
-| Variable  	| Description  	|
-|---	|---	|
-| \{\{ remote_gw }}  	| IP address of ssh destination host |
-| \{\{ remote_interface_gw }} 	| IP address of a interface that is a default gateway in route table on remote SSH 	|
-| \{\{ remote_docker_host }} 	| Autodetected docker host IP address (local bridge) 	|
-| \{\{ remote_docker_container }} | If SSH server is containerized, then it will point to a IP address of a container |
-| \{\{ remote_interface_eth0 }} | eth0 interface ip address |
-| \{\{ remote_interface_eth1 }} | eth1 interface ip address |
-| \{\{ remote_interface_eth2 }} | eth2 interface ip address |
-
 ## Health checking and status monitoring
 
 Health check:
@@ -160,6 +143,23 @@ List of all environment variables that could be used.
 ## Example configuration
 
 Please check the [example](./example) directory for examples.
+
+#### Variables table
+
+Often you do not know on which IP address is the docker container, or interface listening. TunMan allows to retrieve
+dynamic values using variables.
+
+You can use variables instead of ex. host name
+
+| Variable  	| Description  	|
+|---	|---	|
+| \{\{ remote_gw }}  	| IP address of ssh destination host |
+| \{\{ remote_interface_gw }} 	| IP address of a interface that is a default gateway in route table on remote SSH 	|
+| \{\{ remote_docker_host }} 	| Autodetected docker host IP address (local bridge) 	|
+| \{\{ remote_docker_container }} | If SSH server is containerized, then it will point to a IP address of a container |
+| \{\{ remote_interface_eth0 }} | eth0 interface ip address |
+| \{\{ remote_interface_eth1 }} | eth1 interface ip address |
+| \{\{ remote_interface_eth2 }} | eth2 interface ip address |
 
 ## FAQ
 
