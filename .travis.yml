@@ -36,6 +36,8 @@ jobs:
 
     - stage: Release to PIP
       python: 3.7
+      script:
+          - pwd
       deploy:
           skip_cleanup: true
           skip_existing: true
