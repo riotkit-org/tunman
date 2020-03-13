@@ -17,7 +17,12 @@ class ConfigurationFactory(object):
 
     def __init__(self, config: Config):
         self._definitions = []
-        self._load_from_directory(config.CONFIG_PATH + '/conf.d/')
+        self._load_from_directory(config.CONFIG_PATH)
+
+        try:
+            self._load_from_directory(config.CONFIG_PATH + '/conf.d/')
+        except NotADirectoryError:
+            pass
 
     def _load_from_directory(self, path: str):
         Logger.debug('Looking up configuration at "%s" path' % path)
