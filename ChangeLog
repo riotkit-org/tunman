@@ -1,17 +1,43 @@
 CHANGES
 =======
 
+* https://github.com/riotkit-org/tunman/issues/6: Proposition of change
+* Correct badge address
+
+3.1.0
+-----
+
+* Correct PIP deploy
+* Correct deploy build
+* Corrected Travis password
+* Release to PIP
+* Bumped versioning
+* Moved variables table to a proper place
+* Added motto :-)
+
+3.1.0.rc2
+---------
+
+* Added tests for ParsedNetworkingInformation
 * Resolved tests after refactoring
 * Added missing process clean up
 * Refactor: Not using system-dependent shell commands to get networking information, now using just \`ip route\` command result and parsing it
 * Refactor: Split manager into TunnelManager and SystemProcessManager, surround code with try { } catch { }
 * Updated docs
+
+3.1.0.rc1
+---------
+
 * Refactor of naming + docs
 * Refactor of retry mechanism - used loop instead of recursion. The recursion was a very bad idea as it was causing the stack overflow at longer runs
 * Stabilization of the SSH reconnection in all conditions
 * Implemented maximum retries, refactored str representation
 * Fixed support of forwarding to remote, handled gateway ports, added more automation of IP address
 * Fixed mode name to fit the documentation
+
+v3.0.0
+------
+
 * Covered partially tunnel loop restart policy
 * Move logic from manager to model
 * Added travis badge
@@ -26,6 +52,10 @@ CHANGES
 * Added pynacl from package manager, as it compiles too long
 * Trigger README rebuild
 * Updated docs
+
+v3.0.0.rc1
+----------
+
 * Added ARM support to the Travis build
 * Dockerfile and CI setup for 3.0.0 release
 * Fixed launching problems as a package and not as a package

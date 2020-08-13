@@ -1,3 +1,6 @@
+[pipenv]
+allow_prereleases = true
+
 [[source]]
 name = "pypi"
 url = "https://pypi.org/simple"
@@ -6,11 +9,10 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-paramiko = ">=2.6.0"
-jinja2 = "*"
-tornado = "*"
-psutil = "*"
-requests = "*"
-
-[requires]
-python_version = "3.7"
+paramiko = "==2.7.1"
+jinja2 = "==2.11.2"
+tornado = "==6.0.4"
+psutil = "==5.7.2"
+requests = "==2.24.0"
+tox = "==3.19.0"
+rkd = ">=2.1.0.0rc2.dev2"

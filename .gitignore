@@ -4,3 +4,8 @@
 /.idea
 /*.egg-info
 /build
+.rkd/logs
+*.pyc
+*__pycache__*
+/.venv
+.venv-setup.log
