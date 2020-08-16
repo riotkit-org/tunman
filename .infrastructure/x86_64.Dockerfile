@@ -1,4 +1,4 @@
-FROM alpine:3.10
+FROM alpine:3.11
 
 ENV TUNMAN_CONFIG=/config \
     # Secret prefix in the URL ex. https://your-app.org/super-hiper-secret-here/health

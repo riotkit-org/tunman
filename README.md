@@ -3,7 +3,7 @@ TunMan
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/a3df7c2e60ee90d149a0/maintainability)](https://codeclimate.com/github/riotkit-org/reverse-networking/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/a3df7c2e60ee90d149a0/test_coverage)](https://codeclimate.com/github/riotkit-org/reverse-networking/test_coverage)
-[![Build Status](https://travis-ci.org/riotkit-org/tunman.svg?branch=master)](https://travis-ci.org/riotkit-org/tunman)
+[![Build Status](https://travis-ci.org/riotkit-org/reverse-networking.svg?branch=master)](https://travis-ci.org/riotkit-org/reverse-networking)
 
 Network setup automation and supervising. Provides monitoring, health checking, validating the connection with custom Python methods.
 Replaces old, slow maintained `autossh`.
@@ -137,11 +137,11 @@ List of all environment variables that could be used.
 
 - TUNMAN_CONFIG # (default: /config)
 
-# Secret prefix in the URL ex. https://your-app.org/super-hiper-secret-here/health
-- TUNMAN_SECRET_PREFIX # (default: )
-
 # Environment, options: dev, prod
 - TUNMAN_ENV # (default: prod)
+
+# Secret prefix in the URL ex. https://your-app.org/super-hiper-secret-here/health
+- TUNMAN_SECRET_PREFIX # (default: )
 
 
 ```

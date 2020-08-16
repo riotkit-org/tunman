@@ -6,16 +6,6 @@ services:
     - docker
 
 before_script:
-    # dependencies
-    - pip install j2cli requests
-    - wget https://github.com/riotkit-org/ci-utils/archive/v2.0.0.zip -O /tmp/ci-utils.zip
-    - curl "https://raw.githubusercontent.com/riotkit-org/ci-utils/master/ci-integration/travis.sh" -s | bash
-
-    # activate ARM builds on travis
-    - /opt/riotkit/utils/bin/setup-travis-arm-builds
-
-    # authorization
-    - echo "$DOCKER_PASSWORD" | sudo docker login -u "$DOCKER_USERNAME" --password-stdin
     - echo "$QUAY_PASSWORD" | sudo docker login -u "$QUAY_USERNAME" --password-stdin quay.io
 
 jobs:
@@ -34,23 +24,19 @@ jobs:
           - pip install -r ./requirements-dev.txt
           - tox -e py37
 
-    - stage: Release to PIP
-      python: 3.7
+    - stage: Run unit tests on Python 3.8
+      python: 3.8
       script:
-          - pwd
-      deploy:
-          skip_cleanup: true
-          skip_existing: true
-          provider: pypi
-          distributions: sdist bdist_wheel
-          on:
-              all_branches: true
-          user: marek_man
-          password:
-              secure: Z1dg2sPyoh8pt0bzdqVCCe8TnTAmKj7wYwNmaJ1RqRwJWtbuy1kXSgGEJXZA+OPBrM6T/Xe2RRaiQfbVHCX0lfh9NuQFkGvIKtNCbVpZS0LtjkIAd6r+e2HVB9B+9ZWBKaFIrG4jg81i7Zb3xWeMcqfKZe9qt5EtuiDEVnBQwWek7Vvyxc/06id8FV83a3o525Y0HtMYSehs99M7CoTJoTk0bs/x2IpogjvAnET9et6aZ5ZdIGNUzQud0UYR3sY2yiWdnMzFf/ztu36gjayVCq4u28aBfezmCJac/WZUGa4sAQXU1bVt+AWIXOwlEyISbKlJgAWiY4SxS5zlp0iMXhWldwXWWN+2J04AGRHh4YB/50PUaSAvBd/FJbtBaWSlG/NJSoeb7VHZY8eMHnJRND8PDIY4zFAEXX6I3Ew/f0+DqnZmPnxhrsyrES92dOrImEUiE7YvTD0zEpVoE78PSCYuMUXyOd/jSCLelb9Z3tkDfzmh6ZP6Sb4fh7Kr1t9AKVGRVsXqx7eMFDd0Q3n/vHW7mnlUPqywGnYqbgg5CTHH47NReqWO4iPXfOicD6jYfFYCT9wFUI1qYj6fTzuEpdsyhMWcdSNYaBAsVxq/sE2HiSSfmmg1rhrdvZYpkO0QEpTmeMlp5KnjzkpTAknaSd+l+eSNWHf/jFMG9dOqjJE=
+          - pip install -r ./requirements.txt
+          - pip install -r ./requirements-dev.txt
+          - tox -e py38
+
+    - stage: Release
+      python: 3.7
+      script: "rkd :release:pypi"
 
     - stage: Build recent x86_64 image
-      script: make build_image ARCH=x86_64 GIT_TAG=${TRAVIS_TAG} PUSH=true
+      script: "GIT_TAG=${TRAVIS_TAG} rkd :release:docker:x86"
 
     - stage: Build recent ARM image
-      script: make build_image ARCH=arm GIT_TAG=${TRAVIS_TAG} PUSH=true
+      script: "GIT_TAG=${TRAVIS_TAG} rkd :release:docker:arm"

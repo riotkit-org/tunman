@@ -9,3 +9,5 @@
 *__pycache__*
 /.venv
 .venv-setup.log
+/AUTHORS
+/ChangeLog
