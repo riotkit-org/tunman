@@ -29,8 +29,8 @@ pyyaml==5.3.1
 readme-renderer==26.0
 requests-toolbelt==0.9.1
 requests==2.24.0
-rkd-python==2.1.1
-rkd==2.1.1
+rkd-python==2.1.2
+rkd==2.1.2
 rkt-ciutils==3.0.3
 rkt-utils==3.0.3
 secretstorage==3.1.2 ; sys_platform == 'linux'

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "aa40c9de3133cc3733b45f49532f29a4ad67d85d9b582c0ad80072375f0c347e"
+            "sha256": "249bbbcad47d5b358e4d249806328ada25d71a3ff8466774e72206b8e002d586"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -346,17 +346,17 @@
         },
         "rkd": {
             "hashes": [
-                "sha256:52446cd8e571e24b33be9f563d23e8f44252382295d5f1a063c08a36a72cb1cd"
+                "sha256:ecfc22f6574e2bc5bd9b2f2fc8673578c51d63573737156165cec04ef9fe5644"
             ],
             "index": "pypi",
-            "version": "==2.1.1"
+            "version": "==2.1.2"
         },
         "rkd-python": {
             "hashes": [
-                "sha256:3260fe76e3df25e5e2b9efae1d32146bcf4471e158caf52cef85890145499303"
+                "sha256:0d98d9108078e8c48abd04daae04fc62438d83008f217bf4d296bc12f631548a"
             ],
             "index": "pypi",
-            "version": "==2.1.1"
+            "version": "==2.1.2"
         },
         "rkt-ciutils": {
             "hashes": [
