@@ -7,27 +7,25 @@ services:
 
 before_script:
     - echo "$QUAY_PASSWORD" | sudo docker login -u "$QUAY_USERNAME" --password-stdin quay.io
+    - pip show rkd
 
 jobs:
   include:
     - stage: Run unit tests on Python 3.6
       python: 3.6
       script:
-          - pip install -r ./requirements.txt
           - pip install -r ./requirements-dev.txt
           - tox -e py36
 
     - stage: Run unit tests on Python 3.7
       python: 3.7
       script:
-          - pip install -r ./requirements.txt
           - pip install -r ./requirements-dev.txt
           - tox -e py37
 
     - stage: Run unit tests on Python 3.8
       python: 3.8
       script:
-          - pip install -r ./requirements.txt
           - pip install -r ./requirements-dev.txt
           - tox -e py38
 
