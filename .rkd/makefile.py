@@ -101,7 +101,7 @@ TASKS = [
     TaskAlias(':release:pypi', [
         ':validate-readme',
         ':py:build',
-        ':py:publish'
+        ':py:publish', '--password=${PYPI_PASSWORD}', '--username=__token__', '--skip-existing'
     ]),
 
     TaskAlias(':release:docker:x86', [
