@@ -41,5 +41,4 @@ jobs:
             script: "GIT_TAG=${TRAVIS_TAG} rkd :release:docker:x86"
 
         -   stage: Build recent ARM image
-            env: CAN_FAIL=true
-            script: "GIT_TAG=${TRAVIS_TAG} rkd :release:docker:arm"
+            script: "GIT_TAG=${TRAVIS_TAG} travis_wait 30 rkd :release:docker:arm"
