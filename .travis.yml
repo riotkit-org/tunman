@@ -10,31 +10,36 @@ before_script:
     - pip show rkd
 
 jobs:
-  include:
-    - stage: Run unit tests on Python 3.6
-      python: 3.6
-      script:
-          - pip install -r ./requirements-dev.txt
-          - tox -e py36
+    allow_failures:
+        env:
+            - CAN_FAIL=true
 
-    - stage: Run unit tests on Python 3.7
-      python: 3.7
-      script:
-          - pip install -r ./requirements-dev.txt
-          - tox -e py37
+    include:
+        -   stage: Run unit tests on Python 3.6
+            python: 3.6
+            script:
+                - pip install -r ./requirements-dev.txt
+                - tox -e py36
 
-    - stage: Run unit tests on Python 3.8
-      python: 3.8
-      script:
-          - pip install -r ./requirements-dev.txt
-          - tox -e py38
+        -   stage: Run unit tests on Python 3.7
+            python: 3.7
+            script:
+                - pip install -r ./requirements-dev.txt
+                - tox -e py37
 
-    - stage: Release
-      python: 3.7
-      script: "rkd :release:pypi"
+        -   stage: Run unit tests on Python 3.8
+            python: 3.8
+            script:
+                - pip install -r ./requirements-dev.txt
+                - tox -e py38
 
-    - stage: Build recent x86_64 image
-      script: "GIT_TAG=${TRAVIS_TAG} rkd :release:docker:x86"
+        -   stage: Release
+            python: 3.7
+            script: "rkd :release:pypi"
 
-    - stage: Build recent ARM image
-      script: "GIT_TAG=${TRAVIS_TAG} rkd :release:docker:arm"
+        -   stage: Build recent x86_64 image
+            script: "GIT_TAG=${TRAVIS_TAG} rkd :release:docker:x86"
+
+        -   stage: Build recent ARM image
+            env: CAN_FAIL=true
+            script: "GIT_TAG=${TRAVIS_TAG} rkd :release:docker:arm"
