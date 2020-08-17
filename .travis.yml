@@ -35,10 +35,10 @@ jobs:
 
         -   stage: Release
             python: 3.7
-            script: "rkd :release:pypi"
+            script: "PYTHONUNBUFFERED=1 rkd :release:pypi"
 
         -   stage: Build recent x86_64 image
-            script: "GIT_TAG=${TRAVIS_TAG} rkd :release:docker:x86"
+            script: "PYTHONUNBUFFERED=1 GIT_TAG=${TRAVIS_TAG} rkd :release:docker:x86"
 
         -   stage: Build recent ARM image
-            script: "GIT_TAG=${TRAVIS_TAG} travis_wait 30 rkd :release:docker:arm"
+            script: "PYTHONUNBUFFERED=1 GIT_TAG=${TRAVIS_TAG} travis_wait 30 rkd :release:docker:arm"
