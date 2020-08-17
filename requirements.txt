@@ -1,6 +1,6 @@
 -i https://pypi.org/simple
 attrs==19.3.0
-bcrypt==3.1.7
+bcrypt==3.2.0
 bleach==3.1.5
 certifi==2020.6.20
 cffi==1.14.2
@@ -29,8 +29,8 @@ pyyaml==5.3.1
 readme-renderer==26.0
 requests-toolbelt==0.9.1
 requests==2.24.0
-rkd-python==2.1.2
-rkd==2.1.2
+rkd-python==2.1.3
+rkd==2.1.3
 rkt-ciutils==3.0.3
 rkt-utils==3.0.3
 secretstorage==3.1.2 ; sys_platform == 'linux'
