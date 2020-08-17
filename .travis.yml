@@ -6,7 +6,7 @@ services:
     - docker
 
 before_script:
-    - echo "$QUAY_PASSWORD" | sudo docker login -u "$QUAY_USERNAME" --password-stdin quay.io
+    - echo "$QUAY_PASSWORD" | docker login -u "$QUAY_USERNAME" --password-stdin quay.io
     - pip show rkd
 
 jobs:
